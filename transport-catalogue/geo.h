@@ -1,6 +1,8 @@
+// Clib
+#include <cmath>
+
 #pragma once
 
-#include <cmath>
 
 struct Coordinates {
     double lat;
