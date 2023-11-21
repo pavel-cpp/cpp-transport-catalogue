@@ -1,5 +1,8 @@
 #pragma once
 
+// IO
+#include <iostream>
+
 // STL
 #include <vector>
 
@@ -28,6 +31,13 @@ struct CommandDescription {
 
 class InputReader {
 public:
+
+    /**
+     * Читает из потока команды
+     */
+
+    void ReadCommands(std::istream& input);
+
     /**
      * Парсит строку в структуру CommandDescription и сохраняет результат в commands_
      */

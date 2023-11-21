@@ -9,19 +9,30 @@
 // Local
 #include "transport_catalogue.h"
 
+class StatReader {
+public:
 
-struct Request {
-    explicit operator bool() const {
-        return type.empty() && id.empty();
-    }
+    void ReadRequests(std::istream& input);
 
-    bool operator !() const {
-        return !operator bool();
-    }
+    void ExecuteAndPrintStat(const TransportCatalogue& transport_catalogue, std::ostream& output);
 
-    std::string_view type;
-    std::string_view id;
+private:
+
+    struct Request {
+        explicit operator bool() const {
+            return type.empty() && id.empty();
+        }
+
+        bool operator !() const {
+            return !operator bool();
+        }
+
+        std::string type;
+        std::string id;
+    };
+
+    std::vector<Request> requests_;
+
+    Request ParseRequest(std::string_view request);
+
 };
-
-void ParseAndPrintStat(const TransportCatalogue& tansport_catalogue, std::string_view request,
-                       std::ostream& output);
