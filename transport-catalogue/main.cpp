@@ -2,9 +2,6 @@
 #include <fstream>
 #include <iostream>
 
-// Other
-#include <string>
-
 // Local
 #include "input_reader.h"
 #include "stat_reader.h"
