@@ -23,6 +23,7 @@ void StatReader::ReadRequests(std::istream &input) {
     }
 }
 
+// TODO(Pavel): Обновить чтобы выводилась информация в новом виде
 void StatReader::ExecuteAndPrintStat(const TransportCatalogue &transport_catalogue, std::ostream &output) {
     using std::operator ""s;
     using std::endl;

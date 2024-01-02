@@ -103,7 +103,8 @@ void InputReader::ParseLine(std::string_view line) {
     }
 }
 
-void InputReader::ApplyCommands([[maybe_unused]] TransportCatalogue &catalogue) const {
+// TODO(Pavel): Добавить поддержку новых команд
+void InputReader::ApplyCommands(TransportCatalogue &catalogue) const {
     for (const CommandDescription &cmd: commands_) {
         if (cmd.command == "Stop") {
             catalogue.AddStop(cmd.id, ParseCoordinates(cmd.description));

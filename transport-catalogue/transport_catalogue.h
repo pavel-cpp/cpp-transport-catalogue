@@ -18,6 +18,7 @@ class TransportCatalogue {
     struct Stop {
         std::string name_;
         std::optional<Coordinates> position_;
+        std::unordered_map<std::string_view, size_t> near_stops_;
 
         Stop() = default;
 
@@ -59,19 +60,23 @@ public:
         size_t total_stops;
         size_t unique_stops;
         double length;
+        double curvature;
     };
 
     void AddStop(std::string_view name, Coordinates position);
 
+    void AddStop(std::string_view name, Coordinates position, const std::unordered_map<std::string_view, size_t>& near_stops);
+
     void AddRoute(std::string_view bus_name, const std::vector<std::string_view> &stopnames);
 
-    RouteCopy FindRoute(std::string_view bus_name) const;
+    [[nodiscard]] RouteCopy FindRoute(std::string_view bus_name) const;
 
     [[nodiscard]] const Stop &FindStop(std::string_view stop_name) const;
 
-    RouteInfo BusRouteInfo(std::string_view bus_name) const;
+    // TODO(Pavel): Обновить для получения информации с curvature
+    [[nodiscard]] RouteInfo BusRouteInfo(std::string_view bus_name) const;
 
-    SortedBuses StopInfo(std::string_view stop_name) const;
+    [[nodiscard]] SortedBuses StopInfo(std::string_view stop_name) const;
 
 private:
 
@@ -81,9 +86,11 @@ private:
 
     void AddStopImpl(const Stop &stop);
 
-    double CalculateRouteLength(std::string_view bus_name) const;
+    // TODO(Pavel): Добавить CalculateRealRouteLength
 
-    size_t CountUniqueRouteStops(std::string_view bus_name) const;
+    [[nodiscard]] double CalculateNativeRouteLength(std::string_view bus_name) const;
+
+    [[nodiscard]] size_t CountUniqueRouteStops(std::string_view bus_name) const;
 
     std::unordered_map<std::string_view, Stop *> stopname_to_stop_;
     std::deque<Stop> stops_;

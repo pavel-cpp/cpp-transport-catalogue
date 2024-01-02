@@ -10,6 +10,21 @@ void TransportCatalogue::AddStop(std::string_view name) {
     AddStopImpl(Stop(name));
 }
 
+// Добавляет остановку и ближайшие к ней
+void TransportCatalogue::AddStop(std::string_view name, Coordinates position,
+                                 const std::unordered_map<std::string_view, size_t>& near_stops) {
+    AddStop(name, position);
+    auto current_stop = stopname_to_stop_.find(name);
+    for(const auto& [stopname, route_length]: near_stops){
+        auto found = stopname_to_stop_.find(stopname);
+        if(found == stopname_to_stop_.end()){
+            AddStop(stopname);
+            found = stopname_to_stop_.find(stopname);
+        }
+        current_stop->second->near_stops_[found->first] = route_length;
+    }
+}
+
 void TransportCatalogue::AddStopImpl(const TransportCatalogue::Stop &stop) {
     auto found = stopname_to_stop_.find(stop.name_);
     if (found != stopname_to_stop_.end()) {
@@ -56,14 +71,14 @@ TransportCatalogue::RouteInfo TransportCatalogue::BusRouteInfo(string_view bus_n
     return {
             bus_routes_.at(string(bus_name))->route_.size(),
             CountUniqueRouteStops(string(bus_name)),
-            CalculateRouteLength(string(bus_name))
+            CalculateNativeRouteLength(string(bus_name))
     };
 }
 
-double TransportCatalogue::CalculateRouteLength(string_view bus_name) const {
+double TransportCatalogue::CalculateNativeRouteLength(string_view bus_name) const {
     double route_length = 0;
     bool is_first = true;
-    Coordinates past_position;
+    Coordinates past_position{};
     for (const auto &stop: bus_routes_.at(bus_name)->route_) {
         if(!is_first) {
             route_length += ComputeDistance(past_position, stop->position_.value());
