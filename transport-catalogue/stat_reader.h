@@ -12,9 +12,9 @@
 class StatReader {
 public:
 
-    void ReadRequests(std::istream& input);
+    void ReadRequests(std::istream &input);
 
-    void ExecuteAndPrintStat(const TransportCatalogue& transport_catalogue, std::ostream& output);
+    void ExecuteAndPrintStat(const TransportCatalogue &transport_catalogue, std::ostream &output);
 
 private:
 
@@ -23,7 +23,7 @@ private:
             return type.empty() && id.empty();
         }
 
-        bool operator !() const {
+        bool operator!() const {
             return !operator bool();
         }
 

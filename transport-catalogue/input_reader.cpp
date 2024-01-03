@@ -21,7 +21,7 @@ Coordinates ParseCoordinates(std::string_view str) {
     auto not_space2 = str.find_first_not_of(' ', comma + 1);
     auto comma2 = str.find(',', not_space2);
 
-    if(comma2 == std::string_view::npos){
+    if (comma2 == std::string_view::npos) {
         comma2 = str.length();
     }
 
@@ -101,25 +101,31 @@ CommandDescription ParseCommandDescription(std::string_view line) {
             std::string(line.substr(colon_pos + 1))};
 }
 
+/*
+ * Парсит рядом стоящие остановки вида (Di)m to (stop#)
+ */
+std::unordered_map<std::string_view, size_t> ParseNearestStops(std::string_view str) {
+    std::unordered_map<std::string_view, size_t> near_stops;
+
+    std::regex expr(R"((\d+)m to ([\w\s]*),*)");
+    std::smatch matches;
+    std::string temp_str_copy(str);
+
+    while (std::regex_search(temp_str_copy, matches, expr)) {
+        std::string stopname = matches[2].str();
+        size_t shift = str.find(stopname);
+        near_stops[std::string_view(str.begin() + shift, stopname.length())] = std::stoll(matches[1].str());
+        temp_str_copy = matches.suffix();
+    }
+
+    return near_stops;
+}
+
 void InputReader::ParseLine(std::string_view line) {
     auto command_description = ParseCommandDescription(line);
     if (command_description) {
         commands_.push_back(std::move(command_description));
     }
-}
-
-std::unordered_map<std::string_view, size_t> ParseNearestStops(std::string_view str){
-    std::unordered_map<std::string_view, size_t> near_stops;
-    std::regex expr(R"((\d+)m to ([\w\s]*),*)");
-    std::smatch matches;
-    std::string temp_str(str);
-    while(std::regex_search(temp_str, matches, expr)){
-        std::string stop = matches[2].str();
-        size_t shift = str.find(stop);
-        near_stops[std::string_view(str.begin() + shift, stop.length())] = std::stoll(matches[1].str());
-        temp_str = matches.suffix();
-    }
-    return near_stops;
 }
 
 void InputReader::ApplyCommands(TransportCatalogue &catalogue) const {

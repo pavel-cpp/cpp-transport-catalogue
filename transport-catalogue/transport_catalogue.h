@@ -32,7 +32,7 @@ class TransportCatalogue {
 
     };
 
-    class PairStopHasher{
+    class PairStopHasher {
     private:
         std::hash<Stop *> hasher;
     public:
@@ -74,7 +74,8 @@ public:
 
     void AddStop(std::string_view name, Coordinates position);
 
-    void AddStop(std::string_view name, Coordinates position, const std::unordered_map<std::string_view, size_t>& near_stops);
+    void AddStop(std::string_view name, Coordinates position,
+                 const std::unordered_map<std::string_view, size_t> &near_stops);
 
     void AddRoute(std::string_view bus_name, const std::vector<std::string_view> &stopnames);
 
