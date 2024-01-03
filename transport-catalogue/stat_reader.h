@@ -3,7 +3,7 @@
 // IO
 #include <iostream>
 
-// Other
+// Strings
 #include <string_view>
 
 // Local

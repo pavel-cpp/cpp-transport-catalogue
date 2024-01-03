@@ -1,7 +1,7 @@
+#pragma once
+
 // Clib
 #include <cmath>
-
-#pragma once
 
 const int EARTH_RADIUS = 6371000;
 

@@ -1,4 +1,3 @@
-// Local
 #include "stat_reader.h"
 
 StatReader::Request StatReader::ParseRequest(std::string_view request) {
@@ -23,7 +22,6 @@ void StatReader::ReadRequests(std::istream &input) {
     }
 }
 
-// TODO(Pavel): Обновить чтобы выводилась информация в новом виде
 void StatReader::ExecuteAndPrintStat(const TransportCatalogue &transport_catalogue, std::ostream &output) {
     using std::operator ""s;
     using std::endl;
@@ -40,7 +38,9 @@ void StatReader::ExecuteAndPrintStat(const TransportCatalogue &transport_catalog
                        << route_info.unique_stops
                        << " unique stops, "s
                        << route_info.length
-                       << " route length"s
+                       << " route length, "s
+                       << route_info.curvature
+                       << " curvature"s
                        << endl;
             } catch (std::out_of_range &) {
                 output << "not found"s << endl;

@@ -8,9 +8,10 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 
 // Local
+#include <vector>
+
 #include "geo.h"
 
 class TransportCatalogue {
@@ -18,7 +19,6 @@ class TransportCatalogue {
     struct Stop {
         std::string name_;
         std::optional<Coordinates> position_;
-        std::unordered_map<std::string_view, size_t> near_stops_;
 
         Stop() = default;
 
@@ -30,6 +30,15 @@ class TransportCatalogue {
             return name_ == stop.name_ && position_ == stop.position_;
         }
 
+    };
+
+    class PairStopHasher{
+    private:
+        std::hash<Stop *> hasher;
+    public:
+        uint64_t operator()(std::pair<Stop *, Stop *> stop_pair) const {
+            return hasher(stop_pair.first) + hasher(stop_pair.second);
+        }
     };
 
     using RouteCopy = std::vector<Stop>;
@@ -73,7 +82,6 @@ public:
 
     [[nodiscard]] const Stop &FindStop(std::string_view stop_name) const;
 
-    // TODO(Pavel): Обновить для получения информации с curvature
     [[nodiscard]] RouteInfo BusRouteInfo(std::string_view bus_name) const;
 
     [[nodiscard]] SortedBuses StopInfo(std::string_view stop_name) const;
@@ -86,7 +94,7 @@ private:
 
     void AddStopImpl(const Stop &stop);
 
-    // TODO(Pavel): Добавить CalculateRealRouteLength
+    [[nodiscard]] double CalculateRealRouteLength(std::string_view bus_name) const;
 
     [[nodiscard]] double CalculateNativeRouteLength(std::string_view bus_name) const;
 
@@ -97,5 +105,5 @@ private:
     std::unordered_map<std::string_view, Bus *> bus_routes_;
     std::deque<Bus> buses_;
     std::unordered_map<Stop *, Buses> stop_to_buses_;
-
+    std::unordered_map<std::pair<Stop *, Stop *>, size_t, PairStopHasher> stop_to_near_stop_;
 };

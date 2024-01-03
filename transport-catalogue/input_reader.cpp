@@ -1,9 +1,9 @@
+#include "input_reader.h"
+
 // Other
 #include <algorithm>
 #include <iterator>
-
-// Local
-#include "input_reader.h"
+#include <regex>
 
 /**
  * Парсит строку вида "10.123,  -30.1837" и возвращает пару координат (широта, долгота)
@@ -14,14 +14,19 @@ Coordinates ParseCoordinates(std::string_view str) {
     auto not_space = str.find_first_not_of(' ');
     auto comma = str.find(',');
 
-    if (comma == str.npos) {
+    if (comma == std::string_view::npos) {
         return {nan, nan};
     }
 
     auto not_space2 = str.find_first_not_of(' ', comma + 1);
+    auto comma2 = str.find(',', not_space2);
+
+    if(comma2 == std::string_view::npos){
+        comma2 = str.length();
+    }
 
     double lat = std::stod(std::string(str.substr(not_space, comma - not_space)));
-    double lng = std::stod(std::string(str.substr(not_space2)));
+    double lng = std::stod(std::string(str.substr(not_space2, comma2 - not_space)));
 
     return {lat, lng};
 }
@@ -31,7 +36,7 @@ Coordinates ParseCoordinates(std::string_view str) {
  */
 std::string_view Trim(std::string_view string) {
     const auto start = string.find_first_not_of(' ');
-    if (start == string.npos) {
+    if (start == std::string_view::npos) {
         return {};
     }
     return string.substr(start, string.find_last_not_of(' ') + 1 - start);
@@ -46,7 +51,7 @@ std::vector<std::string_view> Split(std::string_view string, char delim) {
     size_t pos = 0;
     while ((pos = string.find_first_not_of(' ', pos)) < string.length()) {
         auto delim_pos = string.find(delim, pos);
-        if (delim_pos == string.npos) {
+        if (delim_pos == std::string_view::npos) {
             delim_pos = string.size();
         }
         if (auto substr = Trim(string.substr(pos, delim_pos - pos)); !substr.empty()) {
@@ -64,7 +69,7 @@ std::vector<std::string_view> Split(std::string_view string, char delim) {
  * Для некольцевого маршрута (A-B-C-D) возвращает массив названий остановок [A,B,C,D,C,B,A]
  */
 std::vector<std::string_view> ParseRoute(std::string_view route) {
-    if (route.find('>') != route.npos) {
+    if (route.find('>') != std::string_view::npos) {
         return Split(route, '>');
     }
 
@@ -77,7 +82,7 @@ std::vector<std::string_view> ParseRoute(std::string_view route) {
 
 CommandDescription ParseCommandDescription(std::string_view line) {
     auto colon_pos = line.find(':');
-    if (colon_pos == line.npos) {
+    if (colon_pos == std::string_view::npos) {
         return {};
     }
 
@@ -103,11 +108,24 @@ void InputReader::ParseLine(std::string_view line) {
     }
 }
 
-// TODO(Pavel): Добавить поддержку новых команд
+std::unordered_map<std::string_view, size_t> ParseNearestStops(std::string_view str){
+    std::unordered_map<std::string_view, size_t> near_stops;
+    std::regex expr(R"((\d+)m to ([\w\s]*),*)");
+    std::smatch matches;
+    std::string temp_str(str);
+    while(std::regex_search(temp_str, matches, expr)){
+        std::string stop = matches[2].str();
+        size_t shift = str.find(stop);
+        near_stops[std::string_view(str.begin() + shift, stop.length())] = std::stoll(matches[1].str());
+        temp_str = matches.suffix();
+    }
+    return near_stops;
+}
+
 void InputReader::ApplyCommands(TransportCatalogue &catalogue) const {
     for (const CommandDescription &cmd: commands_) {
         if (cmd.command == "Stop") {
-            catalogue.AddStop(cmd.id, ParseCoordinates(cmd.description));
+            catalogue.AddStop(cmd.id, ParseCoordinates(cmd.description), ParseNearestStops(cmd.description));
         } else if (cmd.command == "Bus") {
             catalogue.AddRoute(cmd.id, ParseRoute(cmd.description));
         } else {
