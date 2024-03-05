@@ -9,10 +9,6 @@ void TransportCatalogue::AddStop(std::string_view name, Coordinates position) {
     AddStopImpl({name, position});
 }
 
-void TransportCatalogue::AddStop(std::string_view name) {
-    AddStopImpl(Stop(name));
-}
-
 // Добавляет остановку и ближайшие к ней
 void TransportCatalogue::AddStop(std::string_view name, Coordinates position,
                                  const std::unordered_map<std::string_view, size_t> &near_stops) {
@@ -57,13 +53,8 @@ void TransportCatalogue::AddRoute(string_view bus_name, const vector<string_view
     }
 }
 
-TransportCatalogue::RouteCopy TransportCatalogue::FindRoute(string_view bus_name) const {
-    RouteCopy route_copy;
-    route_copy.reserve(bus_routes_.at(bus_name)->route_.size());
-    for (const auto &stop: bus_routes_.at(bus_name)->route_) {
-        route_copy.push_back(*stop);
-    }
-    return route_copy;
+TransportCatalogue::Bus TransportCatalogue::FindRoute(string_view bus_name) const {
+    return *bus_routes_.at(bus_name);
 }
 
 const TransportCatalogue::Stop &TransportCatalogue::FindStop(string_view stop_name) const {
@@ -122,7 +113,7 @@ size_t TransportCatalogue::CountUniqueRouteStops(string_view bus_name) const {
     // Проверяем, есть ли маршрут с указанным именем
     if (bus_routes_.find(bus_name) != bus_routes_.end()) {
 
-        const Route &route = bus_routes_.at(bus_name)->route_;
+        const std::vector<Stop *> &route = bus_routes_.at(bus_name)->route_;
 
         unique_stops_count = unordered_set<Stop *>(route.begin(), route.end()).size();
 
@@ -138,4 +129,11 @@ void TransportCatalogue::AssociateStopWithBus(TransportCatalogue::Stop *stop, Tr
 TransportCatalogue::SortedBuses TransportCatalogue::StopInfo(std::string_view stop_name) const {
     const auto &buses = stop_to_buses_.at(stopname_to_stop_.at(stop_name));
     return {buses.begin(), buses.end()};
+}
+
+void TransportCatalogue::AddDistance(std::string_view stopname_from, std::string_view stopname_to, size_t distance) {
+    stop_to_near_stop_[{
+                    stopname_to_stop_.at(stopname_from),
+                    stopname_to_stop_.at(stopname_to)
+            }] = distance;
 }

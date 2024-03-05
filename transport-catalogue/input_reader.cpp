@@ -129,10 +129,21 @@ void InputReader::ParseLine(std::string_view line) {
 }
 
 void InputReader::ApplyCommands(TransportCatalogue &catalogue) const {
+
     for (const CommandDescription &cmd: commands_) {
         if (cmd.command == "Stop") {
-            catalogue.AddStop(cmd.id, ParseCoordinates(cmd.description), ParseNearestStops(cmd.description));
-        } else if (cmd.command == "Bus") {
+            catalogue.AddStop(cmd.id, ParseCoordinates(cmd.description));
+        }
+    }
+
+    for (const CommandDescription &cmd: commands_) {
+        if (cmd.command == "Stop") {
+            // TODO (Pavel): Тут добавлять расстояние между остановками
+        }
+    }
+
+    for (const CommandDescription &cmd: commands_) {
+        if (cmd.command == "Bus") {
             catalogue.AddRoute(cmd.id, ParseRoute(cmd.description));
         } else {
             throw std::invalid_argument("");

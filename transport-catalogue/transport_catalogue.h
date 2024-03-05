@@ -2,23 +2,23 @@
 
 // Other
 #include <string>
+#include <cstdint>
 
 // STL
 #include <deque>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
-
-// Local
 #include <vector>
 
+// Local
 #include "geo.h"
 
 class TransportCatalogue {
 
     struct Stop {
         std::string name_;
-        std::optional<Coordinates> position_;
+        Coordinates position_;
 
         Stop() = default;
 
@@ -41,20 +41,18 @@ class TransportCatalogue {
         }
     };
 
-    using RouteCopy = std::vector<Stop>;
-    using Route = std::vector<Stop *>;
     using Buses = std::unordered_set<std::string_view>;
     using SortedBuses = std::set<std::string_view>;
 
     struct Bus {
         std::string name_;
-        Route route_;
+        std::vector<Stop *> route_;
 
         Bus() = default;
 
         explicit Bus(std::string_view name) : name_(name) {}
 
-        Bus(std::string_view name, const Route &route) : name_(name), route_(route) {}
+        Bus(std::string_view name, const std::vector<Stop *> &route) : name_(name), route_(route) {}
 
         bool operator==(const Bus &bus) const {
             return name_ == bus.name_
@@ -77,9 +75,11 @@ public:
     void AddStop(std::string_view name, Coordinates position,
                  const std::unordered_map<std::string_view, size_t> &near_stops);
 
+    void AddDistance(std::string_view stopname_from, std::string_view stopname_to, size_t distance);
+
     void AddRoute(std::string_view bus_name, const std::vector<std::string_view> &stopnames);
 
-    [[nodiscard]] RouteCopy FindRoute(std::string_view bus_name) const;
+    [[nodiscard]] Bus FindRoute(std::string_view bus_name) const;
 
     [[nodiscard]] const Stop &FindStop(std::string_view stop_name) const;
 
@@ -90,8 +90,6 @@ public:
 private:
 
     void AssociateStopWithBus(Stop *stop, Bus *bus);
-
-    void AddStop(std::string_view name);
 
     void AddStopImpl(const Stop &stop);
 

@@ -4,6 +4,7 @@
 #include <iostream>
 
 // STL
+#include <deque>
 #include <vector>
 
 // Other
@@ -50,5 +51,6 @@ public:
     void ApplyCommands(TransportCatalogue &catalogue) const;
 
 private:
+
     std::vector<CommandDescription> commands_;
 };
