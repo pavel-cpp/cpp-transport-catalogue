@@ -72,16 +72,13 @@ public:
 
     void AddStop(std::string_view name, Coordinates position);
 
-    void AddStop(std::string_view name, Coordinates position,
-                 const std::unordered_map<std::string_view, size_t> &near_stops);
-
     void AddDistance(std::string_view stopname_from, std::string_view stopname_to, size_t distance);
 
     void AddRoute(std::string_view bus_name, const std::vector<std::string_view> &stopnames);
 
-    [[nodiscard]] Bus FindRoute(std::string_view bus_name) const;
+    [[maybe_unused]] [[nodiscard]] const Stop &FindStop(std::string_view stop_name) const;
 
-    [[nodiscard]] const Stop &FindStop(std::string_view stop_name) const;
+    [[maybe_unused]] [[nodiscard]] Bus FindRoute(std::string_view bus_name) const;
 
     [[nodiscard]] RouteInfo BusRouteInfo(std::string_view bus_name) const;
 
