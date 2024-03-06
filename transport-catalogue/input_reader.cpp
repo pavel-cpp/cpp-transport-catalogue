@@ -138,7 +138,9 @@ void InputReader::ApplyCommands(TransportCatalogue &catalogue) const {
 
     for (const CommandDescription &cmd: commands_) {
         if (cmd.command == "Stop") {
-            // TODO (Pavel): Тут добавлять расстояние между остановками
+            for(const auto& [stopname, distance]: ParseNearestStops(cmd.description)){
+                catalogue.AddDistance(cmd.id, stopname, distance);
+            }
         }
     }
 
