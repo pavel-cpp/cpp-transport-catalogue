@@ -69,12 +69,12 @@ double TransportCatalogue::CalculateNativeRouteLength(string_view bus_name) cons
     bool is_first = true;
     Coordinates past_position{};
     for (const auto &stop: bus_routes_.at(bus_name)->route_) {
-        if (is_first) {
-            past_position = stop->position_;
+        if (!is_first) {
+            route_length += ComputeDistance(past_position, stop->position_);
+        }else{
             is_first = false;
-            continue;
         }
-        route_length += ComputeDistance(past_position, stop->position_);
+        past_position = stop->position_;
     }
     return route_length;
 }

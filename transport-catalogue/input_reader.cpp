@@ -133,6 +133,8 @@ void InputReader::ApplyCommands(TransportCatalogue &catalogue) const {
     for (const CommandDescription &cmd: commands_) {
         if (cmd.command == "Stop") {
             catalogue.AddStop(cmd.id, ParseCoordinates(cmd.description));
+        } else if (cmd.command != "Bus") {
+            throw std::invalid_argument("");
         }
     }
 
@@ -147,8 +149,6 @@ void InputReader::ApplyCommands(TransportCatalogue &catalogue) const {
     for (const CommandDescription &cmd: commands_) {
         if (cmd.command == "Bus") {
             catalogue.AddRoute(cmd.id, ParseRoute(cmd.description));
-        } else {
-            throw std::invalid_argument("");
         }
     }
 }
