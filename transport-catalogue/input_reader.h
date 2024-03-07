@@ -4,7 +4,6 @@
 #include <iostream>
 
 // STL
-#include <deque>
 #include <vector>
 
 // Other
