@@ -6,5 +6,5 @@
  * Пока можете оставить файл пустым.
  */
 namespace renderer {
-    class MapRenderer;
+    class MapRenderer {};
 }

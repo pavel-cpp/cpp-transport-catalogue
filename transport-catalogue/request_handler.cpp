@@ -18,6 +18,6 @@ std::optional<RouteInfo> RequestHandler::GetBusStat(const std::string_view &bus_
     }
 }
 
-const std::unordered_set<Bus *> * RequestHandler::GetBusesByStop(const std::string_view &stop_name) const {
-
+std::set<std::string_view> RequestHandler::GetBusesByStop(const std::string_view &stop_name) const {
+    return db_.StopInfo(stop_name);
 }

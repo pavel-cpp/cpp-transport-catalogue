@@ -46,9 +46,45 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db) {
     }
 }
 
-void JsonReader::ProcessStatRequests(const TransportCatalogue &db, std::ostream &output) {
+json::Node AsJsonNode(const RouteInfo& route_info) {
+    json::Dict dict;
+    dict["route_length"] = route_info.length;
+    dict["curvature"] = route_info.curvature;
+    dict["stop_count"] = static_cast<int>(route_info.total_stops);
+    dict["unique_stop_count"] = static_cast<int>(route_info.unique_stops);
+    return dict;
+}
+
+void JsonReader::ProcessStatRequests(const TransportCatalogue &db, std::ostream &output) const {
     json::Node root = document_.GetRoot();
     if(root.AsMap().find("stat_requests") == root.AsMap().end()) {
         return;
     }
+    RequestHandler handler(db, renderer::MapRenderer());
+    json::Array responses;
+    for (const auto& request: root.AsMap().at("stat_requests").AsArray()) {
+        int request_id = request.AsMap().at("id").AsInt();
+        json::Dict response;
+
+        if(request.AsMap().at("type").AsString() == "Bus") {
+            auto route_info = handler.GetBusStat(request.AsMap().at("name").AsString());
+            if(route_info.has_value()) {
+                response = AsJsonNode(*route_info).AsMap();
+            }else {
+                response["request_id"] = request_id;
+                response["error_message"] = "not found";
+            }
+        }else if(request.AsMap().at("type").AsString() == "Stop") {
+            try {
+                auto buses = handler.GetBusesByStop(request.AsMap().at("name").AsString());
+                response["buses"] = json::Array(buses.begin(), buses.end());
+                response["request_id"] = request_id;
+            }catch (std::out_of_range&) {
+                response["request_id"] = request_id;
+                response["error_message"] = "not found";
+            }
+        }
+        responses.emplace_back(std::move(response));
+    }
+    json::Print(json::Document(std::move(responses)), output);
 }

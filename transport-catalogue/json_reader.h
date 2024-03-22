@@ -19,7 +19,7 @@ public:
     // Метод, который принимает на вход поток ввода в формате JSON и выполняет запросы к базе
     void ProcessBaseRequests(TransportCatalogue &db);
 
-    void ProcessStatRequests(const TransportCatalogue &db, std::ostream &output);
+    void ProcessStatRequests(const TransportCatalogue &db, std::ostream &output) const;
 
 private:
 
