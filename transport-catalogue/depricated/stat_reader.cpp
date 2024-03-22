@@ -1,4 +1,4 @@
-#include "stat_reader.h"
+#include "../stat_reader.h"
 
 StatReader::Request StatReader::ParseRequest(std::string_view request) {
     int pos = request.find(' ');

@@ -31,13 +31,6 @@ class TransportCatalogue {
 
 public:
 
-    struct RouteInfo {
-        size_t total_stops;
-        size_t unique_stops;
-        double length;
-        double curvature;
-    };
-
     void AddStop(std::string_view name, geo::Coordinates position);
 
     void AddDistance(std::string_view stopname_from, std::string_view stopname_to, size_t distance);

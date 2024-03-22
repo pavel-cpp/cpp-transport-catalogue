@@ -34,7 +34,7 @@ const Stop &TransportCatalogue::FindStop(string_view stop_name) const {
     return *stopname_to_stop_.at(stop_name);
 }
 
-TransportCatalogue::RouteInfo TransportCatalogue::BusRouteInfo(string_view bus_name) const {
+RouteInfo TransportCatalogue::BusRouteInfo(string_view bus_name) const {
     double native_length = CalculateNativeRouteLength(string(bus_name));
     double real_length = CalculateRealRouteLength(string(bus_name));
     return {
