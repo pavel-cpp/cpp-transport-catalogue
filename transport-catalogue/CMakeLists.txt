@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(
         ${PROJECT_NAME}
         main.cpp
-        depricated/input_reader.cpp
-        depricated/stat_reader.cpp
         transport_catalogue.cpp
         domain.cpp
         geo.cpp

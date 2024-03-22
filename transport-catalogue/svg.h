@@ -173,7 +173,7 @@ namespace svg {
 
         virtual ~Object() = default;
 
-    private:one
+    private:
         virtual void RenderObject(const RenderContext &context) const = 0;
     };
 

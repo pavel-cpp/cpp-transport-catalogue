@@ -13,6 +13,7 @@
 
 class JsonReader {
 public:
+    JsonReader() = default;
     // Метод, который принимает на вход поток ввода в формате JSON и наполняет транспортный справочник
     void ReadData(std::istream &input);
 
@@ -22,6 +23,5 @@ public:
     void ProcessStatRequests(const TransportCatalogue &db, std::ostream &output) const;
 
 private:
-
-    json::Document document_;
+    json::Document document_{{}};
 };

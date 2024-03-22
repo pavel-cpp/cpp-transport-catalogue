@@ -3,24 +3,17 @@
 #include <iostream>
 
 // Local
-#include "input_reader.h"
-#include "stat_reader.h"
-
-using namespace std;
+#include "json_reader.h"
 
 int main() {
-    ifstream file("test.txt");
+    using namespace std;
+
+    ifstream file("test.json");
+
     TransportCatalogue catalogue;
+    JsonReader reader;
 
-    {
-        InputReader reader;
-        reader.ReadCommands(file);
-        reader.ApplyCommands(catalogue);
-    }
-
-    {
-        StatReader reader;
-        reader.ReadRequests(file);
-        reader.ExecuteAndPrintStat(catalogue, cout);
-    }
+    reader.ReadData(file);
+    reader.ProcessBaseRequests(catalogue);
+    reader.ProcessStatRequests(catalogue, cout);
 }
