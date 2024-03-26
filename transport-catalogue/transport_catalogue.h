@@ -12,25 +12,10 @@
 #include <vector>
 
 // Local
+#include "domain.h"
 #include "geo.h"
 
-class TransportCatalogue {
-
-    struct Stop {
-        std::string name_;
-        Coordinates position_;
-
-        Stop() = default;
-
-        explicit Stop(std::string_view name) : name_(name) {}
-
-        Stop(std::string_view name, Coordinates position) : name_(name), position_(position) {}
-
-        bool operator==(const Stop &stop) const {
-            return name_ == stop.name_ && position_ == stop.position_;
-        }
-
-    };
+class TransportCatalogue final {
 
     class PairStopHasher {
     private:
@@ -44,33 +29,9 @@ class TransportCatalogue {
     using Buses = std::unordered_set<std::string_view>;
     using SortedBuses = std::set<std::string_view>;
 
-    struct Bus {
-        std::string name_;
-        std::vector<Stop *> route_;
-
-        Bus() = default;
-
-        explicit Bus(std::string_view name) : name_(name) {}
-
-        Bus(std::string_view name, const std::vector<Stop *> &route) : name_(name), route_(route) {}
-
-        bool operator==(const Bus &bus) const {
-            return name_ == bus.name_
-                   && std::equal(route_.begin(), route_.end(), bus.route_.begin(), bus.route_.end());
-        }
-
-    };
-
 public:
 
-    struct RouteInfo {
-        size_t total_stops;
-        size_t unique_stops;
-        double length;
-        double curvature;
-    };
-
-    void AddStop(std::string_view name, Coordinates position);
+    void AddStop(std::string_view name, geo::Coordinates position);
 
     void AddDistance(std::string_view stopname_from, std::string_view stopname_to, size_t distance);
 
@@ -86,7 +47,7 @@ public:
 
 private:
 
-    void AssociateStopWithBus(Stop *stop, Bus *bus);
+    void AssociateStopWithBus(Stop *stop, const Bus *bus);
 
     void AddStopImpl(const Stop &stop);
 

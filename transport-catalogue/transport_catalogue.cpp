@@ -5,11 +5,11 @@
 
 using namespace std;
 
-void TransportCatalogue::AddStop(std::string_view name, Coordinates position) {
+void TransportCatalogue::AddStop(std::string_view name, geo::Coordinates position) {
     AddStopImpl({name, position});
 }
 
-void TransportCatalogue::AddStopImpl(const TransportCatalogue::Stop &stop) {
+void TransportCatalogue::AddStopImpl(const Stop &stop) {
     stops_.push_back(stop);
     auto new_stop = &stops_.back();
     stop_to_buses_[new_stop];
@@ -26,15 +26,15 @@ void TransportCatalogue::AddRoute(string_view bus_name, const vector<string_view
     }
 }
 
-TransportCatalogue::Bus TransportCatalogue::FindRoute(string_view bus_name) const {
+Bus TransportCatalogue::FindRoute(string_view bus_name) const {
     return *bus_routes_.at(bus_name);
 }
 
-const TransportCatalogue::Stop &TransportCatalogue::FindStop(string_view stop_name) const {
+const Stop &TransportCatalogue::FindStop(string_view stop_name) const {
     return *stopname_to_stop_.at(stop_name);
 }
 
-TransportCatalogue::RouteInfo TransportCatalogue::BusRouteInfo(string_view bus_name) const {
+RouteInfo TransportCatalogue::BusRouteInfo(string_view bus_name) const {
     double native_length = CalculateNativeRouteLength(string(bus_name));
     double real_length = CalculateRealRouteLength(string(bus_name));
     return {
@@ -47,18 +47,18 @@ TransportCatalogue::RouteInfo TransportCatalogue::BusRouteInfo(string_view bus_n
 
 double TransportCatalogue::CalculateRealRouteLength(std::string_view bus_name) const {
     double route_length = 0;
-    bool is_first = true;
-    Stop *last_stop{};
-    for (const auto &stop: bus_routes_.at(bus_name)->route_) {
-        if (!is_first) {
-            try {
-                route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(last_stop, stop)));
-            } catch (std::out_of_range &) {
-                route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(stop, last_stop)));
-            }
-        } else {
-            is_first = false;
+    const auto& route = bus_routes_.at(bus_name)->route_;
+    Stop *last_stop = route.front();
+    for (const auto &stop: route) {
+        if(stop == last_stop) {
+            continue;
         }
+        try {
+            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(last_stop, stop)));
+        } catch (std::out_of_range &) {
+            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(stop, last_stop)));
+        }
+
         last_stop = stop;
     }
     return route_length;
@@ -67,11 +67,11 @@ double TransportCatalogue::CalculateRealRouteLength(std::string_view bus_name) c
 double TransportCatalogue::CalculateNativeRouteLength(string_view bus_name) const {
     double route_length = 0;
     bool is_first = true;
-    Coordinates past_position{};
+    geo::Coordinates past_position{};
     for (const auto &stop: bus_routes_.at(bus_name)->route_) {
         if (!is_first) {
             route_length += ComputeDistance(past_position, stop->position_);
-        }else{
+        } else {
             is_first = false;
         }
         past_position = stop->position_;
@@ -94,7 +94,7 @@ size_t TransportCatalogue::CountUniqueRouteStops(string_view bus_name) const {
     return unique_stops_count;
 }
 
-void TransportCatalogue::AssociateStopWithBus(TransportCatalogue::Stop *stop, TransportCatalogue::Bus *bus) {
+void TransportCatalogue::AssociateStopWithBus(Stop *stop, const Bus *bus) {
     stop_to_buses_[stop].insert(bus->name_);
 }
 
@@ -105,7 +105,7 @@ TransportCatalogue::SortedBuses TransportCatalogue::StopInfo(std::string_view st
 
 void TransportCatalogue::AddDistance(std::string_view stopname_from, std::string_view stopname_to, size_t distance) {
     stop_to_near_stop_[{
-                    stopname_to_stop_.at(stopname_from),
-                    stopname_to_stop_.at(stopname_to)
-            }] = distance;
+            stopname_to_stop_.at(stopname_from),
+            stopname_to_stop_.at(stopname_to)
+    }] = distance;
 }
