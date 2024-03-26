@@ -42,10 +42,12 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db) {
             for (const auto &stop: request.AsMap().at("stops"s).AsArray()) {
                 stops.push_back(stop.AsString());
             }
-            if (request.AsMap().at("is_roundtrip"s).AsBool()) {
-                for (int i = stops.size() - 2; i >= 0; --i) {
-                    stops.push_back(stops[i]);
-                }
+            if (!request.AsMap().at("is_roundtrip"s).AsBool()) {
+                std::vector<std::string_view> results(stops.begin(), stops.end());
+                results.insert(results.end(), std::next(stops.rbegin()), stops.rend());
+                stops = std::move(results);
+            }else if(stops.front() != stops.back()){
+                stops.push_back(stops.front());
             }
             db.AddRoute(busname, stops);
         }
@@ -71,15 +73,15 @@ void JsonReader::ProcessStatRequests(const TransportCatalogue &db, std::ostream 
     RequestHandler handler(db, renderer::MapRenderer());
     json::Array responses;
     for (const auto &request: root.AsMap().at("stat_requests"s).AsArray()) {
-        int request_id = request.AsMap().at("id"s).AsInt();
         json::Dict response;
+        response["request_id"s] = request.AsMap().at("id"s).AsInt();
 
         if (request.AsMap().at("type"s).AsString() == "Bus"s) {
             auto route_info = handler.GetBusStat(request.AsMap().at("name"s).AsString());
             if (route_info.has_value()) {
-                response = AsJsonNode(*route_info).AsMap();
+                auto info = AsJsonNode(*route_info).AsMap();
+                response.insert(info.begin(), info.end());
             } else {
-                response["request_id"s] = request_id;
                 response["error_message"s] = "not found"s;
             }
         } else if (request.AsMap().at("type"s).AsString() == "Stop"s) {
@@ -89,9 +91,7 @@ void JsonReader::ProcessStatRequests(const TransportCatalogue &db, std::ostream 
                     buses.emplace_back(std::string(bus));
                 }
                 response["buses"s] = std::move(buses);
-                response["request_id"s] = request_id;
             } catch (std::out_of_range &) {
-                response["request_id"s] = request_id;
                 response["error_message"s] = "not found"s;
             }
         }

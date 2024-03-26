@@ -15,7 +15,7 @@
 #include "domain.h"
 #include "geo.h"
 
-class TransportCatalogue {
+class TransportCatalogue final {
 
     class PairStopHasher {
     private:

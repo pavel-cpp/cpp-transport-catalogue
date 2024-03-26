@@ -47,18 +47,18 @@ RouteInfo TransportCatalogue::BusRouteInfo(string_view bus_name) const {
 
 double TransportCatalogue::CalculateRealRouteLength(std::string_view bus_name) const {
     double route_length = 0;
-    bool is_first = true;
-    Stop *last_stop{};
-    for (const auto &stop: bus_routes_.at(bus_name)->route_) {
-        if (!is_first) {
-            try {
-                route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(last_stop, stop)));
-            } catch (std::out_of_range &) {
-                route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(stop, last_stop)));
-            }
-        } else {
-            is_first = false;
+    const auto& route = bus_routes_.at(bus_name)->route_;
+    Stop *last_stop = route.front();
+    for (const auto &stop: route) {
+        if(stop == last_stop) {
+            continue;
         }
+        try {
+            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(last_stop, stop)));
+        } catch (std::out_of_range &) {
+            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(stop, last_stop)));
+        }
+
         last_stop = stop;
     }
     return route_length;
@@ -71,7 +71,7 @@ double TransportCatalogue::CalculateNativeRouteLength(string_view bus_name) cons
     for (const auto &stop: bus_routes_.at(bus_name)->route_) {
         if (!is_first) {
             route_length += ComputeDistance(past_position, stop->position_);
-        }else{
+        } else {
             is_first = false;
         }
         past_position = stop->position_;
@@ -105,7 +105,7 @@ TransportCatalogue::SortedBuses TransportCatalogue::StopInfo(std::string_view st
 
 void TransportCatalogue::AddDistance(std::string_view stopname_from, std::string_view stopname_to, size_t distance) {
     stop_to_near_stop_[{
-                    stopname_to_stop_.at(stopname_from),
-                    stopname_to_stop_.at(stopname_to)
-            }] = distance;
+            stopname_to_stop_.at(stopname_from),
+            stopname_to_stop_.at(stopname_to)
+    }] = distance;
 }
