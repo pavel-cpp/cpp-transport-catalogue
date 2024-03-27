@@ -14,6 +14,14 @@ int main() {
     JsonReader reader;
 
     reader.ReadData(file);
-    reader.ProcessBaseRequests(catalogue);
-    reader.ProcessStatRequests(catalogue, cout);
+    renderer::Settings settings;
+    reader.ProcessRenderSettings(settings);
+    renderer::MapRenderer renderer(settings);
+    reader.ProcessBaseRequests(
+        catalogue,
+        renderer
+        );
+    RequestHandler handler(catalogue, renderer);
+    reader.ProcessStatRequests(handler, cout);
+    handler.RenderMap().Render(cout);
 }

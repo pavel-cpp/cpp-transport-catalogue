@@ -18,9 +18,11 @@ public:
     void ReadData(std::istream &input);
 
     // Метод, который принимает на вход поток ввода в формате JSON и выполняет запросы к базе
-    void ProcessBaseRequests(TransportCatalogue &db);
+    void ProcessBaseRequests(TransportCatalogue &db, renderer::MapRenderer& map) const;
 
-    void ProcessStatRequests(const TransportCatalogue &db, std::ostream &output) const;
+    void ProcessStatRequests(const RequestHandler &db, std::ostream &output) const;
+
+    void ProcessRenderSettings(renderer::Settings& settings) const;
 
 private:
     json::Document document_{{}};
