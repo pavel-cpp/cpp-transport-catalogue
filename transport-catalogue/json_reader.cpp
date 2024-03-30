@@ -15,15 +15,15 @@ geo::Coordinates ExtractCoordinates(const json::Dict &dict) {
 
 void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRenderer &map) const {
     using namespace std::literals;
-    const json::Node root = document_.GetRoot().AsMap().at("base_requests"s);
+    const auto base_requests = document_.GetRoot().AsMap().at("base_requests"s).AsArray();
 
-    for (const auto &request: root.AsArray()) {
+    for (const auto &request: base_requests) {
         if (request.AsMap().at("type"s) == "Stop"s) {
             db.AddStop(request.AsMap().at("name"s).AsString(), ExtractCoordinates(request.AsMap()));
         }
     }
 
-    for (const auto &request: root.AsArray()) {
+    for (const auto &request: base_requests) {
         if (request.AsMap().at("type"s) == "Stop"s) {
             std::string stopname = request.AsMap().at("name"s).AsString();
             for (const auto &[name, distance]: request.AsMap().at("road_distances"s).AsMap()) {
@@ -32,7 +32,7 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
         }
     }
 
-    for (const auto &request: root.AsArray()) {
+    for (const auto &request: base_requests) {
         if (request.AsMap().at("type"s) == "Bus"s) {
             std::string busname = request.AsMap().at("name"s).AsString();
             std::vector<std::string_view> stops;
@@ -46,7 +46,7 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
             } else if (stops.front() != stops.back()) {
                 stops.push_back(stops.front());
             }
-            db.AddRoute(busname, stops);
+            db.AddRoute(busname, stops, request.AsMap().at("is_roundtrip"s).AsBool());
             map.AddBus(db.FindRoute(busname));
         }
     }
@@ -64,11 +64,11 @@ json::Node AsJsonNode(const RouteInfo &route_info) {
 
 void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &output) const {
     using namespace std::literals;
-    const json::Node root = document_.GetRoot().AsMap().at("stat_requests"s);
+    const auto stat_requests = document_.GetRoot().AsMap().at("stat_requests"s).AsArray();
 
     RequestHandler handler(db);
     json::Array responses;
-    for (const auto &request: root.AsArray()) {
+    for (const auto &request: stat_requests) {
         json::Dict response;
         response["request_id"s] = request.AsMap().at("id"s).AsInt();
 
@@ -113,22 +113,24 @@ svg::Color ExtractColor(const json::Node &node) {
 
 void JsonReader::ProcessRenderSettings(renderer::Settings &settings) const {
     using namespace std::literals;
-    const auto settings_json = document_.GetRoot().AsMap().at("render_settings"s).AsMap();
-    settings.width_ = settings_json.at("width"s).AsDouble();
-    settings.height_ = settings_json.at("height"s).AsDouble();
-    settings.padding_ = settings_json.at("padding"s).AsDouble();
-    settings.line_width_ = settings_json.at("line_width"s).AsDouble();
-    settings.stop_radius_ = settings_json.at("stop_radius"s).AsDouble();
-    settings.bus_label_font_size_ = settings_json.at("bus_label_font_size"s).AsInt();
-    settings.bus_label_offset_ = {settings_json.at("bus_label_offset"s).AsArray()[0].AsDouble(),
-                                  settings_json.at("bus_label_offset"s).AsArray()[1].AsDouble()};
-    settings.stop_label_font_size_ = settings_json.at("stop_label_font_size"s).AsInt();
-    settings.stop_label_offset_ = {settings_json.at("stop_label_offset"s).AsArray()[0].AsDouble(),
-                                   settings_json.at("stop_label_offset"s).AsArray()[1].AsDouble()};
-    settings.underlayer_color_ = ExtractColor(settings_json.at("underlayer_color"s).AsArray());
-    settings.underlayer_width_ = settings_json.at("underlayer_width"s).AsDouble();
-    settings.color_palette_.reserve(settings_json.at("color_palette"s).AsArray().size());
-    for (const auto &color: settings_json.at("color_palette"s).AsArray()) {
+    const auto render_settings = document_.GetRoot().AsMap().at("render_settings"s).AsMap();
+
+    settings.width_ = render_settings.at("width"s).AsDouble();
+    settings.height_ = render_settings.at("height"s).AsDouble();
+    settings.padding_ = render_settings.at("padding"s).AsDouble();
+    settings.line_width_ = render_settings.at("line_width"s).AsDouble();
+    settings.stop_radius_ = render_settings.at("stop_radius"s).AsDouble();
+    settings.bus_label_font_size_ = render_settings.at("bus_label_font_size"s).AsInt();
+    settings.bus_label_offset_ = {render_settings.at("bus_label_offset"s).AsArray()[0].AsDouble(),
+                                  render_settings.at("bus_label_offset"s).AsArray()[1].AsDouble()};
+    settings.stop_label_font_size_ = render_settings.at("stop_label_font_size"s).AsInt();
+    settings.stop_label_offset_ = {render_settings.at("stop_label_offset"s).AsArray()[0].AsDouble(),
+                                   render_settings.at("stop_label_offset"s).AsArray()[1].AsDouble()};
+    settings.underlayer_color_ = ExtractColor(render_settings.at("underlayer_color"s));
+    settings.underlayer_width_ = render_settings.at("underlayer_width"s).AsDouble();
+    settings.color_palette_.reserve(render_settings.at("color_palette"s).AsArray().size());
+
+    for (const auto &color: render_settings.at("color_palette"s).AsArray()) {
         settings.color_palette_.push_back(ExtractColor(color));
     }
 }

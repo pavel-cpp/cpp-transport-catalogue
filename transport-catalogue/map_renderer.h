@@ -120,7 +120,7 @@ namespace renderer {
         class BusnameComparator {
         public:
             bool operator()(const Bus& lhs, const Bus& rhs) const {
-            return lhs.name_ <= rhs.name_;
+            return lhs.name_ < rhs.name_;
             }
         };
 

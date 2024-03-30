@@ -16,9 +16,10 @@ void TransportCatalogue::AddStopImpl(const Stop &stop) {
     stopname_to_stop_[new_stop->name_] = new_stop;
 }
 
-void TransportCatalogue::AddRoute(string_view bus_name, const vector<string_view> &stopnames) {
+void TransportCatalogue::AddRoute(string_view bus_name, const vector<string_view> &stopnames, bool is_roundtrip) {
     buses_.emplace_back(bus_name);
     Bus *new_bus = bus_routes_[buses_.back().name_] = &buses_.back();
+    new_bus->is_roundtrip_ = is_roundtrip;
     new_bus->route_.reserve(stopnames.size());
     for (string_view stopname: stopnames) {
         AssociateStopWithBus(stopname_to_stop_[stopname], new_bus);
@@ -48,15 +49,15 @@ RouteInfo TransportCatalogue::BusRouteInfo(string_view bus_name) const {
 double TransportCatalogue::CalculateRealRouteLength(std::string_view bus_name) const {
     double route_length = 0;
     const auto& route = bus_routes_.at(bus_name)->route_;
-    Stop *last_stop = route.front();
-    for (const auto &stop: route) {
+    const Stop *last_stop = route.front();
+    for (const auto stop: route) {
         if(stop == last_stop) {
             continue;
         }
         try {
-            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(last_stop, stop)));
+            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(const_cast<Stop *>(last_stop), const_cast<Stop *>(stop))));
         } catch (std::out_of_range &) {
-            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(stop, last_stop)));
+            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(const_cast<Stop *>(stop), const_cast<Stop *>(last_stop))));
         }
 
         last_stop = stop;
@@ -85,9 +86,9 @@ size_t TransportCatalogue::CountUniqueRouteStops(string_view bus_name) const {
     // Проверяем, есть ли маршрут с указанным именем
     if (bus_routes_.find(bus_name) != bus_routes_.end()) {
 
-        const std::vector<Stop *> &route = bus_routes_.at(bus_name)->route_;
+        const std::vector<const Stop *> &route = bus_routes_.at(bus_name)->route_;
 
-        unique_stops_count = unordered_set<Stop *>(route.begin(), route.end()).size();
+        unique_stops_count = unordered_set<const Stop *>(route.begin(), route.end()).size();
 
     }
 

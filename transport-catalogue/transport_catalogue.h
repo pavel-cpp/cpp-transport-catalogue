@@ -35,7 +35,7 @@ public:
 
     void AddDistance(std::string_view stopname_from, std::string_view stopname_to, size_t distance);
 
-    void AddRoute(std::string_view bus_name, const std::vector<std::string_view> &stopnames);
+    void AddRoute(std::string_view bus_name, const std::vector<std::string_view> &stopnames, bool is_roundtrip);
 
     [[maybe_unused]] [[nodiscard]] const Stop &FindStop(std::string_view stop_name) const;
 
