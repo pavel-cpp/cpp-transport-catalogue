@@ -21,3 +21,9 @@ std::optional<RouteInfo> RequestHandler::GetBusStat(const std::string_view &bus_
 std::set<std::string_view> RequestHandler::GetBusesByStop(const std::string_view &stop_name) const {
     return db_.StopInfo(stop_name);
 }
+
+svg::Document RequestHandler::RenderMap() const {
+    svg::Document doc;
+    renderer_.Render(doc);
+    return doc;
+}

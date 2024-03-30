@@ -23,16 +23,16 @@ struct Stop {
 };
 
 struct Bus {
-    std::string name_;
-    std::vector<Stop *> route_;
+    std::string name_{};
+    std::vector<const Stop *> route_{};
+    bool is_roundtrip_{};
 
     Bus() = default;
 
-    explicit Bus(std::string_view name) : name_(name) {
-    }
-
-    Bus(std::string_view name, const std::vector<Stop *> &route) : name_(name), route_(route) {
-    }
+    explicit Bus(std::string_view name, const std::vector<const Stop *> &route = {}, bool is_roundtrip = {})
+            : name_(name),
+              route_(route),
+              is_roundtrip_(is_roundtrip) {}
 
     bool operator==(const Bus &bus) const {
         return name_ == bus.name_
