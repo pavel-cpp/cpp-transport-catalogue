@@ -23,7 +23,5 @@ int main() {
         renderer
         );
     RequestHandler handler(catalogue, renderer);
-    // reader.ProcessStatRequests(handler, cout);
-    // cout << endl;
-    handler.RenderMap().Render(svg_image);
+    reader.ProcessStatRequests(handler, cout);
 }

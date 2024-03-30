@@ -32,27 +32,16 @@ namespace renderer {
         }
     };
 
-    template<typename Iter, typename Func>
-    void RenderStops(Iter begin, Iter end, Func func) {
-        std::unordered_set<const Stop *> rendered_stops;
-        std::for_each(begin, end,
-                      [&](const Bus &bus) {
-                          for (const Stop *stop: std::set<const Stop *, StopnameComparator>(bus.route_.begin(),
-                                                                                            bus.route_.end())) {
-                              if (rendered_stops.find(stop) == rendered_stops.end()) {
-                                  func(stop);
-                                  rendered_stops.insert(stop);
-                              }
-                          }
-                      }
-        );
-    }
-
     void MapRenderer::Render(svg::Document &svg_out) const {
         auto coordinates = ExtractAllCoordinates(buses_);
         const SphereProjector projector(coordinates.begin(), coordinates.end(), settings_.width_, settings_.height_,
                                         settings_.padding_);
+        RenderLines(svg_out, projector);
+        RenderBusnames(svg_out, projector);
+        RenderCirclesAndStopnames(svg_out, projector);
+    }
 
+    void MapRenderer::RenderLines(svg::Document &svg_out, const SphereProjector &projector) const {
         size_t color_number = 0;
         for (const Bus &bus: buses_) {
             svg::Polyline route_line;
@@ -71,8 +60,10 @@ namespace renderer {
             );
             color_number = (color_number + 1) % settings_.color_palette_.size();
         }
+    }
 
-        color_number = 0;
+    void MapRenderer::RenderBusnames(svg::Document &svg_out, const SphereProjector &projector) const {
+        size_t color_number = 0;
 
         for (const Bus &bus: buses_) {
             svg::Text bus_label = svg::Text()
@@ -103,15 +94,20 @@ namespace renderer {
 
             color_number = (color_number + 1) % settings_.color_palette_.size();
         }
+    }
+
+    void MapRenderer::RenderCirclesAndStopnames(svg::Document &svg_out, const SphereProjector &projector) const {
+        std::set<const Stop *, StopnameComparator> stops_to_render;
+        for (const Bus &bus: buses_) {
+            stops_to_render.insert(bus.route_.begin(), bus.route_.end());
+        }
 
         svg::Circle stop_point = svg::Circle()
                 .SetRadius(settings_.stop_radius_)
-                .SetFillColor(settings_.color_palette_[color_number])
                 .SetFillColor("white");
-        RenderStops(buses_.begin(), buses_.end(),
-                    [&stop_point, &svg_out, &projector](const Stop *stop) {
-                        svg_out.Add(stop_point.SetCenter(projector(stop->position_)));
-                    });
+        for (const Stop *stop: stops_to_render) {
+            svg_out.Add(stop_point.SetCenter(projector(stop->position_)));
+        }
 
         svg::Text stop_label = svg::Text()
                 .SetFontSize(settings_.stop_label_font_size_)
@@ -125,12 +121,11 @@ namespace renderer {
                 .SetStrokeWidth(settings_.underlayer_width_)
                 .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
                 .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
-        RenderStops(buses_.begin(), buses_.end(),
-                    [&stop_label, &stop_label_underlayer, &svg_out, &projector](const Stop *stop) {
-                        svg_out.Add(stop_label_underlayer.SetPosition(projector(stop->position_)).SetData(stop->name_));
-                        svg_out.Add(stop_label.SetPosition(projector(stop->position_)).SetData(stop->name_));
-                    }
-        );
+        for (const Stop *stop: stops_to_render) {
+            svg_out.Add(stop_label_underlayer.SetPosition(projector(stop->position_)).SetData(stop->name_));
+            svg_out.Add(stop_label.SetPosition(projector(stop->position_)).SetData(stop->name_));
+        }
     }
+
 
 } // renderer

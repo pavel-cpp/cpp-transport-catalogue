@@ -16,7 +16,7 @@ namespace renderer {
         return std::abs(value) < EPSILON;
     }
 
-    class SphereProjector {
+    class SphereProjector final {
     public:
         // points_begin и points_end задают начало и конец интервала элементов geo::Coordinates
         template<typename PointInputIt>
@@ -115,6 +115,13 @@ namespace renderer {
         void Render(svg::Document &svg_out) const;
 
     private:
+
+        void RenderLines(svg::Document &svg_out, const SphereProjector& projector) const;
+
+        void RenderBusnames(svg::Document &svg_out, const SphereProjector& projector) const;
+
+        void RenderCirclesAndStopnames(svg::Document &svg_out, const SphereProjector& projector) const;
+
         Settings settings_;
 
         class BusnameComparator {
