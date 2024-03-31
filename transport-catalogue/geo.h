@@ -4,7 +4,7 @@
 #include <cmath>
 
 namespace geo {
-    const int EARTH_RADIUS = 6371000;
+    constexpr int EARTH_RADIUS = 6371000;
 
     struct Coordinates {
         double lat;

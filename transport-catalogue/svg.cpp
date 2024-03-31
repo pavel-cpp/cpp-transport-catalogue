@@ -16,8 +16,7 @@ namespace svg {
     }
 
 
-
-// ---------- Circle ------------------
+    // ---------- Circle ------------------
 
     Circle &Circle::SetCenter(Point center) {
         center_ = center;
@@ -147,4 +146,4 @@ namespace svg {
         }
         out << "</svg> "sv;
     }
-}  // namespace svg
+} // namespace svg

@@ -6,11 +6,7 @@
 using namespace std;
 
 void TransportCatalogue::AddStop(std::string_view name, geo::Coordinates position) {
-    AddStopImpl({name, position});
-}
-
-void TransportCatalogue::AddStopImpl(const Stop &stop) {
-    stops_.push_back(stop);
+    stops_.emplace_back(name, position);
     auto new_stop = &stops_.back();
     stop_to_buses_[new_stop];
     stopname_to_stop_[new_stop->name_] = new_stop;
@@ -48,16 +44,18 @@ RouteInfo TransportCatalogue::BusRouteInfo(string_view bus_name) const {
 
 double TransportCatalogue::CalculateRealRouteLength(std::string_view bus_name) const {
     double route_length = 0;
-    const auto& route = bus_routes_.at(bus_name)->route_;
+    const auto &route = bus_routes_.at(bus_name)->route_;
     const Stop *last_stop = route.front();
     for (const auto stop: route) {
-        if(stop == last_stop) {
+        if (stop == last_stop) {
             continue;
         }
         try {
-            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(const_cast<Stop *>(last_stop), const_cast<Stop *>(stop))));
+            route_length += static_cast<double>(stop_to_near_stop_.at(
+                    make_pair(const_cast<Stop *>(last_stop), const_cast<Stop *>(stop))));
         } catch (std::out_of_range &) {
-            route_length += static_cast<double>(stop_to_near_stop_.at(make_pair(const_cast<Stop *>(stop), const_cast<Stop *>(last_stop))));
+            route_length += static_cast<double>(stop_to_near_stop_.at(
+                    make_pair(const_cast<Stop *>(stop), const_cast<Stop *>(last_stop))));
         }
 
         last_stop = stop;
@@ -86,7 +84,7 @@ size_t TransportCatalogue::CountUniqueRouteStops(string_view bus_name) const {
     // Проверяем, есть ли маршрут с указанным именем
     if (bus_routes_.find(bus_name) != bus_routes_.end()) {
 
-        const std::vector<const Stop *> &route = bus_routes_.at(bus_name)->route_;
+        const auto &route = bus_routes_.at(bus_name)->route_;
 
         unique_stops_count = unordered_set<const Stop *>(route.begin(), route.end()).size();
 

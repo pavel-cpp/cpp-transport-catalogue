@@ -7,13 +7,14 @@
  * Если вы затрудняетесь выбрать, что можно было бы поместить в этот файл,
  * можете оставить его пустым.
  */
-RequestHandler::RequestHandler(const TransportCatalogue &db, const renderer::MapRenderer &renderer)
-    : db_(db), renderer_(renderer) {}
+RequestHandler::RequestHandler(const TransportCatalogue &db, const renderer::MapRenderer &renderer) :
+    db_(db), renderer_(renderer) {
+}
 
 std::optional<RouteInfo> RequestHandler::GetBusStat(const std::string_view &bus_name) const {
     try {
         return db_.BusRouteInfo(bus_name);
-    } catch (std::out_of_range& ) {
+    } catch (std::out_of_range &) {
         return std::nullopt;
     }
 }

@@ -8,20 +8,20 @@
 int main() {
     using namespace std;
 
-    ifstream file("test.json"s);
-    ofstream svg_image("result.svg"s);
+    // ifstream file("test.json"s);
+    // ofstream svg_image("result.svg"s);
 
     TransportCatalogue catalogue;
     JsonReader reader;
 
-    reader.ReadData(file);
-    renderer::Settings settings;
-    reader.ProcessRenderSettings(settings);
-    renderer::MapRenderer renderer(settings);
+    reader.ReadData(cin);
+    renderer::MapRenderer renderer(
+            reader.GetRenderSettings()
+            );
     reader.ProcessBaseRequests(
-        catalogue,
-        renderer
-        );
+            catalogue,
+            renderer
+            );
     RequestHandler handler(catalogue, renderer);
     reader.ProcessStatRequests(handler, cout);
 }

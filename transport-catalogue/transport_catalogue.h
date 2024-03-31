@@ -1,8 +1,8 @@
 #pragma once
 
 // Other
-#include <string>
 #include <cstdint>
+#include <string>
 
 // STL
 #include <deque>
@@ -48,8 +48,6 @@ public:
 private:
 
     void AssociateStopWithBus(Stop *stop, const Bus *bus);
-
-    void AddStopImpl(const Stop &stop);
 
     [[nodiscard]] double CalculateRealRouteLength(std::string_view bus_name) const;
 

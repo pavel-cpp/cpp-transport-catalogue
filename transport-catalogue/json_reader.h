@@ -6,23 +6,20 @@
 #include "request_handler.h"
 #include "transport_catalogue.h"
 
-/*
- * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
- * а также код обработки запросов к базе и формирование массива ответов в формате JSON
- */
-
-class JsonReader {
+class JsonReader final {
 public:
     JsonReader() = default;
-    // Метод, который принимает на вход поток ввода в формате JSON и наполняет транспортный справочник
+    // Метод, который принимает на вход поток ввода в формате JSON, и преобразует его в jsdon::Document
     void ReadData(std::istream &input);
 
-    // Метод, который принимает на вход поток ввода в формате JSON и выполняет запросы к базе
+    // Метод обработки Base запросов
     void ProcessBaseRequests(TransportCatalogue &db, renderer::MapRenderer& map) const;
 
+    // Метод обработки Stat запросов
     void ProcessStatRequests(const RequestHandler &db, std::ostream &output) const;
 
-    void ProcessRenderSettings(renderer::Settings& settings) const;
+    // Метод считывающий настройки
+    [[nodiscard]] renderer::Settings GetRenderSettings() const;
 
 private:
     json::Document document_{{}};

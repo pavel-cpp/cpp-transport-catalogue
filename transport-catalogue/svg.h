@@ -9,7 +9,6 @@
 #include <variant>
 
 namespace svg {
-
     struct Rgb {
         uint8_t red{};
         uint8_t green{};
@@ -17,8 +16,8 @@ namespace svg {
 
         Rgb() = default;
 
-        Rgb(uint8_t red, uint8_t green, uint8_t blue) : red(red), green(green), blue(blue) {}
-
+        Rgb(uint8_t red, uint8_t green, uint8_t blue) : red(red), green(green), blue(blue) {
+        }
     };
 
     struct Rgba : Rgb {
@@ -27,7 +26,8 @@ namespace svg {
         Rgba() = default;
 
         Rgba(uint8_t red, uint8_t green, uint8_t blue, double opacity) : Rgb(red, green, blue),
-                                                                         opacity(opacity) {}
+                                                                         opacity(opacity) {
+        }
     };
 
     using Color = std::variant<std::monostate, std::string, Rgb, Rgba>;
@@ -37,25 +37,26 @@ namespace svg {
     inline std::ostream &operator<<(std::ostream &out, Rgb color) {
         using namespace std::literals;
         return out << "rgb("s
-                   << static_cast<int>(color.red) << ','
-                   << static_cast<int>(color.green) << ','
-                   << static_cast<int>(color.blue)
-                   << ')';
+               << static_cast<int>(color.red) << ','
+               << static_cast<int>(color.green) << ','
+               << static_cast<int>(color.blue)
+               << ')';
     }
 
     inline std::ostream &operator<<(std::ostream &out, Rgba color) {
         using namespace std::literals;
         return out << "rgba("s
-                   << static_cast<int>(color.red) << ','
-                   << static_cast<int>(color.green) << ','
-                   << static_cast<int>(color.blue) << ','
-                   << color.opacity
-                   << ')';
+               << static_cast<int>(color.red) << ','
+               << static_cast<int>(color.green) << ','
+               << static_cast<int>(color.blue) << ','
+               << color.opacity
+               << ')';
     }
 
     class ColorVisitor {
     public:
-        explicit ColorVisitor(std::ostream &out) : out_(out) {}
+        explicit ColorVisitor(std::ostream &out) : out_(out) {
+        }
 
         void operator()(std::monostate) {
             using namespace std::literals;
@@ -126,24 +127,24 @@ namespace svg {
         Point() = default;
 
         Point(double x, double y)
-                : x(x), y(y) {
+            : x(x), y(y) {
         }
 
         double x = 0;
         double y = 0;
     };
 
-/*
- * Вспомогательная структура, хранящая контекст для вывода SVG-документа с отступами.
- * Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
- */
+    /*
+     * Вспомогательная структура, хранящая контекст для вывода SVG-документа с отступами.
+     * Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
+     */
     struct RenderContext {
         RenderContext(std::ostream &out)
-                : out(out) {
+            : out(out) {
         }
 
         RenderContext(std::ostream &out, int indent_step, int indent = 0)
-                : out(out), indent_step(indent_step), indent(indent) {
+            : out(out), indent_step(indent_step), indent(indent) {
         }
 
         RenderContext Indented() const {
@@ -161,14 +162,13 @@ namespace svg {
         int indent = 0;
     };
 
-/*
- * Абстрактный базовый класс Object служит для унифицированного хранения
- * конкретных тегов SVG-документа
- * Реализует паттерн "Шаблонный метод" для вывода содержимого тега
- */
+    /*
+     * Абстрактный базовый класс Object служит для унифицированного хранения
+     * конкретных тегов SVG-документа
+     * Реализует паттерн "Шаблонный метод" для вывода содержимого тега
+     */
     class Object {
     public:
-
         void Render(const RenderContext &context) const;
 
         virtual ~Object() = default;
@@ -250,10 +250,10 @@ namespace svg {
         std::optional<double> stroke_width_;
     };
 
-/*
- * Класс Circle моделирует элемент <circle> для отображения круга
- * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
- */
+    /*
+     * Класс Circle моделирует элемент <circle> для отображения круга
+     * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
+     */
     class Circle final : public Object, public PathProps<Circle> {
     public:
         Circle &SetCenter(Point center);
@@ -267,26 +267,25 @@ namespace svg {
         double radius_ = 1.0;
     };
 
-/*
- * Класс Polyline моделирует элемент <polyline> для отображения ломаных линий
- * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
- */
+    /*
+     * Класс Polyline моделирует элемент <polyline> для отображения ломаных линий
+     * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
+     */
     class Polyline final : public Object, public PathProps<Polyline> {
     public:
         // Добавляет очередную вершину к ломаной линии
         Polyline &AddPoint(Point point);
 
     private:
-
         void RenderObject(const RenderContext &context) const override;
 
         std::list<Point> points_;
     };
 
-/*
- * Класс Text моделирует элемент <text> для отображения текста
- * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
- */
+    /*
+     * Класс Text моделирует элемент <text> для отображения текста
+     * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
+     */
     class Text final : public Object, public PathProps<Text> {
     public:
         // Задаёт координаты опорной точки (атрибуты x и y)
@@ -328,7 +327,6 @@ namespace svg {
         virtual void AddPtr(std::unique_ptr<Object> && /*obj*/) = 0;
 
     protected:
-
         ~ObjectContainer() = default;
     };
 
@@ -356,7 +354,6 @@ namespace svg {
 
         // Прочие методы и данные, необходимые для реализации клaасса Document
     private:
-        std::list<std::unique_ptr<Object>> objects_;
+        std::list<std::unique_ptr<Object> > objects_;
     };
-
-}  // namespace svg
+} // namespace svg

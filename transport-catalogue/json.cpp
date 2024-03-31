@@ -335,10 +335,10 @@ namespace json {
 
         void PrintNode(const Node &node, const PrintContext &ctx) {
             std::visit(
-                [&ctx](const auto &value) {
-                    PrintValue(value, ctx);
-                },
-                node.GetValue());
+                    [&ctx](const auto &value) {
+                        PrintValue(value, ctx);
+                    },
+                    node.GetValue());
         }
     } // namespace
 

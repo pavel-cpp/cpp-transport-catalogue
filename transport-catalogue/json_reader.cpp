@@ -1,14 +1,13 @@
 #include "json_reader.h"
 
 #include <algorithm>
-/*
- * Здесь можно разместить код наполнения транспортного справочника данными из JSON,
- * а также код обработки запросов к базе и формирование массива ответов в формате JSON
- */
+#include <sstream>
+
 void JsonReader::ReadData(std::istream &input) {
     document_ = json::Load(input);
 }
 
+// Функция, которая распаковывает соординаты
 geo::Coordinates ExtractCoordinates(const json::Dict &dict) {
     return {dict.at("latitude").AsDouble(), dict.at("longitude").AsDouble()};
 }
@@ -17,12 +16,14 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
     using namespace std::literals;
     const auto base_requests = document_.GetRoot().AsMap().at("base_requests"s).AsArray();
 
+    // Добавляем остановки
     for (const auto &request: base_requests) {
         if (request.AsMap().at("type"s) == "Stop"s) {
             db.AddStop(request.AsMap().at("name"s).AsString(), ExtractCoordinates(request.AsMap()));
         }
     }
 
+    // Добавляем дистанции между остановками
     for (const auto &request: base_requests) {
         if (request.AsMap().at("type"s) == "Stop"s) {
             std::string stopname = request.AsMap().at("name"s).AsString();
@@ -32,6 +33,7 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
         }
     }
 
+    // Создаем и добавляем маршруты
     for (const auto &request: base_requests) {
         if (request.AsMap().at("type"s) == "Bus"s) {
             std::string busname = request.AsMap().at("name"s).AsString();
@@ -46,12 +48,16 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
             } else if (stops.front() != stops.back()) {
                 stops.push_back(stops.front());
             }
+            // Добавляем маршрут
             db.AddRoute(busname, stops, request.AsMap().at("is_roundtrip"s).AsBool());
+
+            // Добавляем автобус в карту для дальнейшей отрисовки
             map.AddBus(db.FindRoute(busname));
         }
     }
 }
 
+// Функция для перобразования RouteInfo в формат предназначенный для работы с json
 json::Node AsJsonNode(const RouteInfo &route_info) {
     using namespace std::literals;
     json::Dict dict;
@@ -90,12 +96,17 @@ void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &out
             } catch (std::out_of_range &) {
                 response["error_message"s] = "not found"s;
             }
+        } else if (request.AsMap().at("type"s).AsString() == "Map"s) {
+            std::stringstream ss;
+            handler.RenderMap().Render(ss);
+            response["map"s] = ss.str();
         }
         responses.emplace_back(std::move(response));
     }
     json::Print(json::Document(std::move(responses)), output);
 }
 
+// Функция для распаковки цвета
 svg::Color ExtractColor(const json::Node &node) {
     if (node.IsString()) {
         return node.AsString();
@@ -111,7 +122,8 @@ svg::Color ExtractColor(const json::Node &node) {
     return {};
 }
 
-void JsonReader::ProcessRenderSettings(renderer::Settings &settings) const {
+renderer::Settings JsonReader::GetRenderSettings() const {
+    renderer::Settings settings;
     using namespace std::literals;
     const auto render_settings = document_.GetRoot().AsMap().at("render_settings"s).AsMap();
 
@@ -121,11 +133,11 @@ void JsonReader::ProcessRenderSettings(renderer::Settings &settings) const {
     settings.line_width_ = render_settings.at("line_width"s).AsDouble();
     settings.stop_radius_ = render_settings.at("stop_radius"s).AsDouble();
     settings.bus_label_font_size_ = render_settings.at("bus_label_font_size"s).AsInt();
-    settings.bus_label_offset_ = {render_settings.at("bus_label_offset"s).AsArray()[0].AsDouble(),
-                                  render_settings.at("bus_label_offset"s).AsArray()[1].AsDouble()};
+    settings.bus_label_offset_ = {render_settings.at("bus_label_offset"s).AsArray().at(0).AsDouble(),
+                                  render_settings.at("bus_label_offset"s).AsArray().at(1).AsDouble()};
     settings.stop_label_font_size_ = render_settings.at("stop_label_font_size"s).AsInt();
-    settings.stop_label_offset_ = {render_settings.at("stop_label_offset"s).AsArray()[0].AsDouble(),
-                                   render_settings.at("stop_label_offset"s).AsArray()[1].AsDouble()};
+    settings.stop_label_offset_ = {render_settings.at("stop_label_offset"s).AsArray().at(0).AsDouble(),
+                                   render_settings.at("stop_label_offset"s).AsArray().at(1).AsDouble()};
     settings.underlayer_color_ = ExtractColor(render_settings.at("underlayer_color"s));
     settings.underlayer_width_ = render_settings.at("underlayer_width"s).AsDouble();
     settings.color_palette_.reserve(render_settings.at("color_palette"s).AsArray().size());
@@ -133,4 +145,6 @@ void JsonReader::ProcessRenderSettings(renderer::Settings &settings) const {
     for (const auto &color: render_settings.at("color_palette"s).AsArray()) {
         settings.color_palette_.push_back(ExtractColor(color));
     }
+
+    return settings;
 }

@@ -7,7 +7,7 @@
 namespace renderer {
 
     MapRenderer::MapRenderer(Settings settings) :
-            settings_(std::move(settings)) {
+        settings_(std::move(settings)) {
     }
 
     void MapRenderer::AddBus(const Bus &bus) {
@@ -52,12 +52,12 @@ namespace renderer {
 
             svg_out.Add(
                     route_line
-                            .SetFillColor("none")
-                            .SetStrokeColor(settings_.color_palette_[color_number])
-                            .SetStrokeWidth(settings_.line_width_)
-                            .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
-                            .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND)
-            );
+                    .SetFillColor("none")
+                    .SetStrokeColor(settings_.color_palette_[color_number])
+                    .SetStrokeWidth(settings_.line_width_)
+                    .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+                    .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND)
+                    );
             color_number = (color_number + 1) % settings_.color_palette_.size();
         }
     }

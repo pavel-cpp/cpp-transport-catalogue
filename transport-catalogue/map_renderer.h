@@ -122,8 +122,6 @@ namespace renderer {
 
         void RenderCirclesAndStopnames(svg::Document &svg_out, const SphereProjector& projector) const;
 
-        Settings settings_;
-
         class BusnameComparator {
         public:
             bool operator()(const Bus& lhs, const Bus& rhs) const {
@@ -132,6 +130,7 @@ namespace renderer {
         };
 
         std::set<Bus, BusnameComparator> buses_;
+        Settings settings_;
 
     };
 }
