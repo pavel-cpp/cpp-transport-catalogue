@@ -8,13 +8,13 @@
 int main() {
     using namespace std;
 
-    ifstream file("test.json"s);
+    // ifstream file("test.json"s);
     // ofstream svg_image("result.svg"s);
 
     TransportCatalogue catalogue;
     JsonReader reader;
 
-    reader.ReadData(file);
+    reader.ReadData(cin);
     renderer::MapRenderer renderer(
             reader.GetRenderSettings()
             );
