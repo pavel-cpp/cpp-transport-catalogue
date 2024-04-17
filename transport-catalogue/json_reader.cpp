@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <sstream>
 
+#include "json_builder.h"
+
 void JsonReader::ReadData(std::istream &input) {
     document_ = json::Load(input);
 }
@@ -57,53 +59,48 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
     }
 }
 
-// Функция для перобразования RouteInfo в формат предназначенный для работы с json
-json::Node AsJsonNode(const RouteInfo &route_info) {
-    using namespace std::literals;
-    json::Dict dict;
-    dict["route_length"s] = route_info.length;
-    dict["curvature"s] = route_info.curvature;
-    dict["stop_count"s] = static_cast<int>(route_info.total_stops);
-    dict["unique_stop_count"s] = static_cast<int>(route_info.unique_stops);
-    return dict;
-}
-
 void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &output) const {
     using namespace std::literals;
     const auto stat_requests = document_.GetRoot().AsDict().at("stat_requests"s).AsArray();
 
     RequestHandler handler(db);
-    json::Array responses;
+    json::Builder response_builder{};
+    response_builder.StartArray();
     for (const auto &request: stat_requests) {
-        json::Dict response;
-        response["request_id"s] = request.AsDict().at("id"s).AsInt();
+        response_builder.StartDict();
+        response_builder.Key("request_id"s).Value(request.AsDict().at("id"s).AsInt());
 
         if (request.AsDict().at("type"s).AsString() == "Bus"s) {
             auto route_info = handler.GetBusStat(request.AsDict().at("name"s).AsString());
             if (route_info.has_value()) {
-                auto info = AsJsonNode(*route_info).AsDict();
-                response.insert(info.begin(), info.end());
+                response_builder
+                        .Key("route_length"s).Value(route_info->length)
+                        .Key("curvature"s).Value(route_info->curvature)
+                        .Key("stop_count"s).Value(static_cast<int>(route_info->total_stops))
+                        .Key("unique_stop_count"s).Value(static_cast<int>(route_info->unique_stops));
             } else {
-                response["error_message"s] = "not found"s;
+                response_builder.Key("error_message"s).Value("not found"s);
             }
         } else if (request.AsDict().at("type"s).AsString() == "Stop"s) {
             try {
-                json::Array buses;
+                response_builder.Key("buses"s).StartArray();
                 for (std::string_view bus: handler.GetBusesByStop(request.AsDict().at("name"s).AsString())) {
-                    buses.emplace_back(std::string(bus));
+                    response_builder.Value(std::string(bus));
                 }
-                response["buses"s] = std::move(buses);
+                response_builder.EndArray();
             } catch (std::out_of_range &) {
-                response["error_message"s] = "not found"s;
+                response_builder.EndArray();
+                response_builder.Key("error_message"s).Value("not found"s);
             }
         } else if (request.AsDict().at("type"s).AsString() == "Map"s) {
             std::stringstream ss;
             handler.RenderMap().Render(ss);
-            response["map"s] = ss.str();
+            response_builder.Key("map"s).Value(ss.str());
         }
-        responses.emplace_back(std::move(response));
+        response_builder.EndDict();
     }
-    json::Print(json::Document(std::move(responses)), output);
+    response_builder.EndArray();
+    json::Print(json::Document(response_builder.Build()), output);
 }
 
 // Функция для распаковки цвета
