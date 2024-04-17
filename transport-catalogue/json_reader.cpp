@@ -83,13 +83,13 @@ void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &out
             }
         } else if (request.AsDict().at("type"s).AsString() == "Stop"s) {
             try {
-                response_builder.Key("buses"s).StartArray();
-                for (std::string_view bus: handler.GetBusesByStop(request.AsDict().at("name"s).AsString())) {
+                auto buses = handler.GetBusesByStop(request.AsDict().at("name"s).AsString());
+                response_builder.Key("buses").StartArray();
+                for (std::string_view bus: buses) {
                     response_builder.Value(std::string(bus));
                 }
                 response_builder.EndArray();
             } catch (std::out_of_range &) {
-                response_builder.EndArray();
                 response_builder.Key("error_message"s).Value("not found"s);
             }
         } else if (request.AsDict().at("type"s).AsString() == "Map"s) {
