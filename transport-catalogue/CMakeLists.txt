@@ -10,11 +10,9 @@ add_executable(
         domain.cpp
         geo.cpp
         json.cpp
-        json_reader.h
         json_reader.cpp
-        map_renderer.h
         map_renderer.cpp
-        request_handler.h
         request_handler.cpp
+		json_builder.cpp
         svg.cpp
 )
