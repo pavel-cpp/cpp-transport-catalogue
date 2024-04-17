@@ -1,8 +1,5 @@
 #pragma once
 
-// Clib
-#include <cmath>
-
 namespace geo {
     constexpr int EARTH_RADIUS = 6371000;
 

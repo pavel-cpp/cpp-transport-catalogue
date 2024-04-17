@@ -21,7 +21,7 @@ class TransportCatalogue final {
     private:
         std::hash<Stop *> hasher;
     public:
-        uint64_t operator()(std::pair<Stop *, Stop *> stop_pair) const {
+        uint64_t operator()(const std::pair<Stop *, Stop *>& stop_pair) const {
             return hasher(stop_pair.first) + hasher(stop_pair.second);
         }
     };

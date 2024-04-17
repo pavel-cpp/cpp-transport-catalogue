@@ -28,7 +28,7 @@ namespace json {
         std::vector<Node*> nodes_stack_;
 
         Node::Value& GetCurrentValue();
-        const Node::Value& GetCurrentValue() const;
+        [[nodiscard]] const Node::Value& GetCurrentValue() const;
 
         void AssertNewObjectContext() const;
         void AddObject(Node::Value value, bool one_shot);
@@ -97,4 +97,4 @@ namespace json {
         };
     };
 
-}  // namespace json
+}

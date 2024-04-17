@@ -1,7 +1,5 @@
 #include "svg.h"
 
-#include <cmath>
-
 namespace svg {
 
     using namespace std::literals;
@@ -31,8 +29,8 @@ namespace svg {
     void Circle::RenderObject(const RenderContext &context) const {
         auto &out = context.out;
         out << "<circle";
-        out << " cx=\""sv << center_.x << "\" cy=\""sv << center_.y << "\" "sv;
-        out << "r=\""sv << radius_ << '"';
+        out << R"( cx=")" << center_.x << R"(" cy=")" << center_.y << R"(" )";
+        out << R"(r=")" << radius_ << '"';
         RenderAttrs(out);
         out << "/>"sv;
     }
@@ -45,7 +43,7 @@ namespace svg {
     void Polyline::RenderObject(const RenderContext &context) const {
         auto &out = context.out;
         out << "<polyline ";
-        out << "points=\""sv;
+        out << R"(points=")";
         bool is_first = true;
         for (const Point &point: points_) {
             if (is_first) {
@@ -121,8 +119,8 @@ namespace svg {
         auto &out = context.out;
         out << "<text"sv;
         RenderAttrs(out);
-        out << " x=\""sv << position_.x << "\" " << "y=\""sv << position_.y << "\" ";
-        out << "dx=\""sv << offset_.x << "\" " << "dy=\""sv << offset_.y << "\" ";
+        out << R"( x=")" << position_.x << "\" " << R"(y=")" << position_.y << "\" ";
+        out << R"(dx=")" << offset_.x << "\" " << R"(dy=")" << offset_.y << "\" ";
         out << "font-size=\"" << size_ << "\"";
         if (!font_family_.empty()) {
             out << " font-family=\"" << font_family_ << "\"";
@@ -138,8 +136,8 @@ namespace svg {
     }
 
     void Document::Render(std::ostream &out) const {
-        out << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"sv << std::endl;
-        out << "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">"sv << std::endl;
+        out << R"(<?xml version="1.0" encoding="UTF-8" ?>)" << std::endl;
+        out << R"(<svg xmlns="http://www.w3.org/2000/svg" version="1.1">)" << std::endl;
         RenderContext context(out, 2, 2);
         for (const auto &object: objects_) {
             object->Render(context);

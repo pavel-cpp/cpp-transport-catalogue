@@ -58,20 +58,20 @@ namespace svg {
         explicit ColorVisitor(std::ostream &out) : out_(out) {
         }
 
-        void operator()(std::monostate) {
+        void operator()(std::monostate) const {
             using namespace std::literals;
             out_ << "none"sv;
         }
 
-        void operator()(std::string color) {
+        void operator()(const std::string& color) const {
             out_ << color;
         }
 
-        void operator()(Rgb rgb) {
+        void operator()(Rgb rgb) const {
             out_ << rgb;
         }
 
-        void operator()(Rgba rgba) {
+        void operator()(Rgba rgba) const {
             out_ << rgba;
         }
 
@@ -139,7 +139,7 @@ namespace svg {
      * Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
      */
     struct RenderContext {
-        RenderContext(std::ostream &out)
+        explicit RenderContext(std::ostream &out)
             : out(out) {
         }
 
@@ -147,7 +147,7 @@ namespace svg {
             : out(out), indent_step(indent_step), indent(indent) {
         }
 
-        RenderContext Indented() const {
+        [[nodiscard]] RenderContext Indented() const {
             return {out, indent_step, indent + indent_step};
         }
 
@@ -213,14 +213,14 @@ namespace svg {
             using namespace std::literals;
 
             if (fill_color_) {
-                out << " fill=\""sv;
+                out << R"( fill=")";
                 std::visit(ColorVisitor(out), *fill_color_);
-                out << "\""sv;
+                out << R"(")";
             }
             if (stroke_color_) {
-                out << " stroke=\""sv;
+                out << R"( stroke=")";
                 std::visit(ColorVisitor(out), *stroke_color_);
-                out << "\""sv;
+                out << R"(")";
             }
 
             if (stroke_width_) {
@@ -228,11 +228,11 @@ namespace svg {
             }
 
             if (stroke_line_cap_) {
-                out << " stroke-linecap=\"" << *stroke_line_cap_ << "\""sv;
+                out << " stroke-linecap=\"" << *stroke_line_cap_ << R"(")";
             }
 
             if (stroke_line_join_) {
-                out << " stroke-linejoin=\"" << *stroke_line_join_ << "\""sv;
+                out << " stroke-linejoin=\"" << *stroke_line_join_ << R"(")";
             }
         }
 
