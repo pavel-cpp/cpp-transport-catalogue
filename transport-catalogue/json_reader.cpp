@@ -14,20 +14,20 @@ geo::Coordinates ExtractCoordinates(const json::Dict &dict) {
 
 void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRenderer &map) const {
     using namespace std::literals;
-    const auto base_requests = document_.GetRoot().AsMap().at("base_requests"s).AsArray();
+    const auto base_requests = document_.GetRoot().AsDict().at("base_requests"s).AsArray();
 
     // Добавляем остановки
     for (const auto &request: base_requests) {
-        if (request.AsMap().at("type"s) == "Stop"s) {
-            db.AddStop(request.AsMap().at("name"s).AsString(), ExtractCoordinates(request.AsMap()));
+        if (request.AsDict().at("type"s) == "Stop"s) {
+            db.AddStop(request.AsDict().at("name"s).AsString(), ExtractCoordinates(request.AsDict()));
         }
     }
 
     // Добавляем дистанции между остановками
     for (const auto &request: base_requests) {
-        if (request.AsMap().at("type"s) == "Stop"s) {
-            std::string stopname = request.AsMap().at("name"s).AsString();
-            for (const auto &[name, distance]: request.AsMap().at("road_distances"s).AsMap()) {
+        if (request.AsDict().at("type"s) == "Stop"s) {
+            std::string stopname = request.AsDict().at("name"s).AsString();
+            for (const auto &[name, distance]: request.AsDict().at("road_distances"s).AsDict()) {
                 db.AddDistance(stopname, name, distance.AsInt());
             }
         }
@@ -35,13 +35,13 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
 
     // Создаем и добавляем маршруты
     for (const auto &request: base_requests) {
-        if (request.AsMap().at("type"s) == "Bus"s) {
-            std::string busname = request.AsMap().at("name"s).AsString();
+        if (request.AsDict().at("type"s) == "Bus"s) {
+            std::string busname = request.AsDict().at("name"s).AsString();
             std::vector<std::string_view> stops;
-            for (const auto &stop: request.AsMap().at("stops"s).AsArray()) {
+            for (const auto &stop: request.AsDict().at("stops"s).AsArray()) {
                 stops.push_back(stop.AsString());
             }
-            if (!request.AsMap().at("is_roundtrip"s).AsBool()) {
+            if (!request.AsDict().at("is_roundtrip"s).AsBool()) {
                 std::vector<std::string_view> results(stops.begin(), stops.end());
                 results.insert(results.end(), std::next(stops.rbegin()), stops.rend());
                 stops = std::move(results);
@@ -49,7 +49,7 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
                 stops.push_back(stops.front());
             }
             // Добавляем маршрут
-            db.AddRoute(busname, stops, request.AsMap().at("is_roundtrip"s).AsBool());
+            db.AddRoute(busname, stops, request.AsDict().at("is_roundtrip"s).AsBool());
 
             // Добавляем автобус в карту для дальнейшей отрисовки
             map.AddBus(db.FindRoute(busname));
@@ -70,33 +70,33 @@ json::Node AsJsonNode(const RouteInfo &route_info) {
 
 void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &output) const {
     using namespace std::literals;
-    const auto stat_requests = document_.GetRoot().AsMap().at("stat_requests"s).AsArray();
+    const auto stat_requests = document_.GetRoot().AsDict().at("stat_requests"s).AsArray();
 
     RequestHandler handler(db);
     json::Array responses;
     for (const auto &request: stat_requests) {
         json::Dict response;
-        response["request_id"s] = request.AsMap().at("id"s).AsInt();
+        response["request_id"s] = request.AsDict().at("id"s).AsInt();
 
-        if (request.AsMap().at("type"s).AsString() == "Bus"s) {
-            auto route_info = handler.GetBusStat(request.AsMap().at("name"s).AsString());
+        if (request.AsDict().at("type"s).AsString() == "Bus"s) {
+            auto route_info = handler.GetBusStat(request.AsDict().at("name"s).AsString());
             if (route_info.has_value()) {
-                auto info = AsJsonNode(*route_info).AsMap();
+                auto info = AsJsonNode(*route_info).AsDict();
                 response.insert(info.begin(), info.end());
             } else {
                 response["error_message"s] = "not found"s;
             }
-        } else if (request.AsMap().at("type"s).AsString() == "Stop"s) {
+        } else if (request.AsDict().at("type"s).AsString() == "Stop"s) {
             try {
                 json::Array buses;
-                for (std::string_view bus: handler.GetBusesByStop(request.AsMap().at("name"s).AsString())) {
+                for (std::string_view bus: handler.GetBusesByStop(request.AsDict().at("name"s).AsString())) {
                     buses.emplace_back(std::string(bus));
                 }
                 response["buses"s] = std::move(buses);
             } catch (std::out_of_range &) {
                 response["error_message"s] = "not found"s;
             }
-        } else if (request.AsMap().at("type"s).AsString() == "Map"s) {
+        } else if (request.AsDict().at("type"s).AsString() == "Map"s) {
             std::stringstream ss;
             handler.RenderMap().Render(ss);
             response["map"s] = ss.str();
@@ -125,7 +125,7 @@ svg::Color ExtractColor(const json::Node &node) {
 renderer::Settings JsonReader::GetRenderSettings() const {
     renderer::Settings settings;
     using namespace std::literals;
-    const auto render_settings = document_.GetRoot().AsMap().at("render_settings"s).AsMap();
+    const auto render_settings = document_.GetRoot().AsDict().at("render_settings"s).AsDict();
 
     settings.width_ = render_settings.at("width"s).AsDouble();
     settings.height_ = render_settings.at("height"s).AsDouble();
