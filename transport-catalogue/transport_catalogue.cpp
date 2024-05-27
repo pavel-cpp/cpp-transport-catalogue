@@ -1,7 +1,8 @@
 #include "transport_catalogue.h"
 
-// Other
 #include <stdexcept>
+
+#include "graph.h"
 
 using namespace std;
 
@@ -25,6 +26,19 @@ void TransportCatalogue::AddRoute(string_view bus_name, const vector<string_view
 
 Bus TransportCatalogue::FindRoute(string_view bus_name) const {
     return *bus_routes_.at(bus_name);
+}
+
+size_t TransportCatalogue::Distance(const Stop *from, const Stop *to) const {
+    if (from == nullptr || to == nullptr) {
+        throw std::invalid_argument("Cannot calculate distanses between null pointer stop(s)");
+    }
+    if (stop_to_near_stop_.count({from, to})) {
+        return stop_to_near_stop_.at({ from, to });
+    }
+    if (stop_to_near_stop_.count({ to, from })) {
+        return stop_to_near_stop_.at({ to, from });
+    }
+    return 0;
 }
 
 const Stop &TransportCatalogue::FindStop(string_view stop_name) const {
@@ -100,6 +114,22 @@ void TransportCatalogue::AssociateStopWithBus(Stop *stop, const Bus *bus) {
 TransportCatalogue::SortedBuses TransportCatalogue::StopInfo(std::string_view stop_name) const {
     const auto &buses = stop_to_buses_.at(stopname_to_stop_.at(stop_name));
     return {buses.begin(), buses.end()};
+}
+
+std::map<std::string_view, const Bus*> TransportCatalogue::GetAllSortedBuses() const noexcept {
+    std::map<std::string_view, const Bus*> result;
+    for (const auto& bus : bus_routes_) {
+        result.emplace(bus);
+    }
+    return result;
+}
+
+std::map<std::string_view, const Stop*> TransportCatalogue::GetAllSortedStops() const noexcept {
+    std::map<std::string_view, const Stop*> result;
+    for (const auto& stop : stopname_to_stop_) {
+        result.emplace(stop);
+    }
+    return result;
 }
 
 void TransportCatalogue::AddDistance(std::string_view stopname_from, std::string_view stopname_to, size_t distance) {
