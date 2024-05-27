@@ -11,10 +11,13 @@ class TransportRouter final {
 public:
 
     using RouteInfo = graph::Router<double>::RouteInfo;
+    using Graph = graph::DirectedWeightedGraph<double>;
 
     explicit TransportRouter(uint8_t bus_wait_time, double bus_velocity, const TransportCatalogue& catalogue);
 
     [[nodiscard]] std::optional<RouteInfo> FindRoute(std::string_view stop_from, std::string_view stop_to) const;
+
+    [[nodiscard]] Graph GetGraph() const;
 
 private:
 

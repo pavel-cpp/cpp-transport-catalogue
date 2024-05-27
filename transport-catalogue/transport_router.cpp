@@ -74,3 +74,7 @@ TransportRouter::FindRoute(
         ) const {
     return router_->BuildRoute(stop_ids_.at(std::string(stop_from)), stop_ids_.at(std::string(stop_to)));
 }
+
+TransportRouter::Graph TransportRouter::GetGraph() const {
+    return graph_;
+}

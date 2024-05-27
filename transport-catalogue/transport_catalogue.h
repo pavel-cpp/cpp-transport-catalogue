@@ -19,10 +19,10 @@
 class TransportCatalogue final {
     class PairStopHasher {
     private:
-        std::hash<Stop*> hasher;
+        std::hash<const Stop*> hasher;
 
     public:
-        uint64_t operator()(const std::pair<Stop*, Stop*>& stop_pair) const {
+        uint64_t operator()(const std::pair<const Stop*, const Stop*>& stop_pair) const {
             return hasher(stop_pair.first) + hasher(stop_pair.second);
         }
     };
@@ -42,7 +42,7 @@ public:
 
     [[maybe_unused]] [[nodiscard]] Bus FindRoute(std::string_view bus_name) const;
 
-    [[size_t]] size_t Distance(const Stop* from, const Stop* to) const;
+    [[nodiscard]] size_t Distance(const Stop* from, const Stop* to) const;
 
     [[nodiscard]] RouteInfo BusRouteInfo(std::string_view bus_name) const;
 

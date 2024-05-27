@@ -25,3 +25,7 @@ svg::Document RequestHandler::RenderMap() const {
 std::optional<TransportRouter::RouteInfo> RequestHandler::FindRoute(std::string_view from, std::string_view to) const {
     return router_.FindRoute(from, to);
 }
+
+TransportRouter::Graph RequestHandler::GetRouterGraph() const {
+    return router_.GetGraph();
+}

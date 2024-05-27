@@ -26,6 +26,8 @@ public:
 
     [[nodiscard]] std::optional<TransportRouter::RouteInfo> FindRoute(std::string_view from, std::string_view to) const;
 
+    [[nodiscard]] TransportRouter::Graph GetRouterGraph() const;
+
 private:
     // RequestHandler использует агрегацию объектов "Транспортный Справочник" и "Визуализатор Карты"
     const TransportCatalogue& catalogue_;
