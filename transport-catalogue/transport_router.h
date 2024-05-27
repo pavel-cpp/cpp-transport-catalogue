@@ -7,7 +7,7 @@
 
 #include "transport_catalogue.h"
 
-class TransportRouter {
+class TransportRouter final {
 public:
 
     using RouteInfo = graph::Router<double>::RouteInfo;
@@ -27,7 +27,7 @@ private:
 
 };
 
-class TransportRouterBuilder {
+class TransportRouterBuilder final {
 public:
 
     TransportRouterBuilder() = delete;
@@ -35,14 +35,18 @@ public:
     TransportRouterBuilder(const TransportRouterBuilder&) = default;
     TransportRouterBuilder(TransportRouterBuilder&&) = default;
 
-    TransportRouterBuilder& SetBusWaitTime(uint8_t value) {
+    TransportRouterBuilder& SetBusWaitTime(uint8_t value) noexcept {
         bus_wait_time_ = value;
         return *this;
     }
 
-    TransportRouterBuilder& SetBusVelocity(uint8_t value) {
+    TransportRouterBuilder& SetBusVelocity(uint8_t value) noexcept {
         bus_velocity_ = value;
         return *this;
+    }
+
+    TransportRouter Build() const noexcept {
+        return TransportRouter {bus_wait_time_, bus_velocity_, catalogue_};
     }
 
 private:
