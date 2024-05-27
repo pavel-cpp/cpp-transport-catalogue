@@ -59,7 +59,7 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
     }
 }
 
-void JsonReader::ProcessRoutingSettings(TransportCatalogue &db, TransportRouterBuilder &router_builder) const {
+void JsonReader::ProcessRoutingSettings(TransportRouterBuilder &router_builder) const {
     using namespace std::literals;
     const auto routing_settings = document_.GetRoot().AsDict().at("routing_settings"s).AsDict();
 

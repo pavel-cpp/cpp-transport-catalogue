@@ -16,7 +16,7 @@ public:
     // Метод обработки Base запросов
     void ProcessBaseRequests(TransportCatalogue &db, renderer::MapRenderer& map) const;
 
-    void ProcessRoutingSettings(TransportCatalogue &db, TransportRouterBuilder& router_builder) const;
+    void ProcessRoutingSettings(TransportRouterBuilder& router_builder) const;
 
     // Метод обработки Stat запросов
     void ProcessStatRequests(const RequestHandler &db, std::ostream &output) const;

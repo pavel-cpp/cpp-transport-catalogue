@@ -28,7 +28,10 @@ int main() {
             catalogue,
             renderer
             );
-    RequestHandler handler(catalogue, renderer);
+    TransportRouterBuilder router_builder(catalogue);
+    reader.ProcessRoutingSettings(router_builder);
+    TransportRouter router = router_builder.Build();
+    RequestHandler handler(catalogue, renderer, router);
     reader.ProcessStatRequests(
             handler,
 #ifndef Debug
