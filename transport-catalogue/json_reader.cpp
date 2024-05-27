@@ -59,6 +59,16 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
     }
 }
 
+void JsonReader::ProcessRoutingSettings(TransportCatalogue &db, TransportRouterBuilder &router_builder) const {
+    using namespace std::literals;
+    const auto routing_settings = document_.GetRoot().AsDict().at("routing_settings"s).AsDict();
+
+    router_builder
+            .SetBusVelocity(static_cast<uint8_t>(routing_settings.at("bus_velocity"s).AsDouble()))
+            .SetBusWaitTime(routing_settings.at("bus_wait_time"s).AsInt());
+
+}
+
 void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &output) const {
     using namespace std::literals;
     const auto stat_requests = document_.GetRoot().AsDict().at("stat_requests"s).AsArray();

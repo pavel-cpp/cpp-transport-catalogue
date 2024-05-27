@@ -26,3 +26,29 @@ private:
     std::unique_ptr<graph::Router<double>> router_ {};
 
 };
+
+class TransportRouterBuilder {
+public:
+
+    TransportRouterBuilder() = delete;
+    explicit TransportRouterBuilder(const TransportCatalogue& catalogue) : catalogue_(catalogue) {}
+    TransportRouterBuilder(const TransportRouterBuilder&) = default;
+    TransportRouterBuilder(TransportRouterBuilder&&) = default;
+
+    TransportRouterBuilder& SetBusWaitTime(uint8_t value) {
+        bus_wait_time_ = value;
+        return *this;
+    }
+
+    TransportRouterBuilder& SetBusVelocity(uint8_t value) {
+        bus_velocity_ = value;
+        return *this;
+    }
+
+private:
+
+    const TransportCatalogue& catalogue_ {};
+    uint8_t bus_wait_time_ {0};
+    double bus_velocity_ {0.0};
+
+};
