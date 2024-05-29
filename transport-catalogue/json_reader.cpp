@@ -59,6 +59,16 @@ void JsonReader::ProcessBaseRequests(TransportCatalogue &db, renderer::MapRender
     }
 }
 
+void JsonReader::ProcessRoutingSettings(TransportRouterBuilder &router_builder) const {
+    using namespace std::literals;
+    const auto routing_settings = document_.GetRoot().AsDict().at("routing_settings"s).AsDict();
+
+    router_builder
+            .SetBusVelocity(static_cast<uint8_t>(routing_settings.at("bus_velocity"s).AsDouble()))
+            .SetBusWaitTime(routing_settings.at("bus_wait_time"s).AsInt());
+
+}
+
 void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &output) const {
     using namespace std::literals;
     const auto stat_requests = document_.GetRoot().AsDict().at("stat_requests"s).AsArray();
@@ -68,9 +78,13 @@ void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &out
     response_builder.StartArray();
     for (const auto &request: stat_requests) {
         response_builder.StartDict();
-        response_builder.Key("request_id"s).Value(request.AsDict().at("id"s).AsInt());
+        response_builder.Key("request_id"s).Value(
+                request.AsDict().at("id"s).AsInt()
+                );
 
-        if (request.AsDict().at("type"s).AsString() == "Bus"s) {
+        std::string request_type = request.AsDict().at("type").AsString();
+
+        if (request_type == "Bus"s) {
             auto route_info = handler.GetBusStat(request.AsDict().at("name"s).AsString());
             if (route_info.has_value()) {
                 response_builder
@@ -81,7 +95,7 @@ void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &out
             } else {
                 response_builder.Key("error_message"s).Value("not found"s);
             }
-        } else if (request.AsDict().at("type"s).AsString() == "Stop"s) {
+        } else if (request_type == "Stop"s) {
             try {
                 auto buses = handler.GetBusesByStop(request.AsDict().at("name"s).AsString());
                 response_builder.Key("buses").StartArray();
@@ -92,10 +106,56 @@ void JsonReader::ProcessStatRequests(const RequestHandler &db, std::ostream &out
             } catch (std::out_of_range &) {
                 response_builder.Key("error_message"s).Value("not found"s);
             }
-        } else if (request.AsDict().at("type"s).AsString() == "Map"s) {
+        } else if (request_type == "Map"s) {
             std::stringstream ss;
             handler.RenderMap().Render(ss);
             response_builder.Key("map"s).Value(ss.str());
+        } else if (request_type == "Route") {
+            std::string from = request.AsDict().at("from").AsString();
+            std::string to = request.AsDict().at("to").AsString();
+            auto route = handler.FindRoute(from, to);
+            if (!route.has_value()) {
+                response_builder.Key("error_message").Value("not found");
+                response_builder.EndDict();
+                continue;
+            }
+
+            json::Array items;
+            double total_time = 0.0;
+            items.reserve(route.value().edges.size());
+            for (auto &edge_id: route.value().edges) {
+                const graph::Edge<double> edge = handler.GetRouterGraph().GetEdge(edge_id);
+                if (edge.quality == 0) {
+                    items.emplace_back(
+                            json::Builder{}
+                            .StartDict()
+                                .Key("stop_name"s).Value(edge.name)
+                                .Key("time"s).Value(edge.weight)
+                                .Key("type"s).Value("Wait"s)
+                            .EndDict()
+                            .Build()
+                            );
+
+                    total_time += edge.weight;
+                } else {
+                    items.emplace_back(
+                            json::Builder{}
+                            .StartDict()
+                                .Key("bus"s).Value(edge.name)
+                                .Key("span_count"s).Value(static_cast<int>(edge.quality))
+                                .Key("time"s).Value(edge.weight)
+                                .Key("type"s).Value("Bus"s)
+                            .EndDict()
+                            .Build()
+                            );
+
+                    total_time += edge.weight;
+                }
+            }
+
+            response_builder
+                    .Key("total_time"s).Value(total_time)
+                    .Key("items"s).Value(items);
         }
         response_builder.EndDict();
     }
