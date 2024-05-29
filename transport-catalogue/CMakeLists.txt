@@ -20,4 +20,5 @@ add_executable(
         request_handler.cpp
 		json_builder.cpp
         svg.cpp
+		transport_router.h
 )
